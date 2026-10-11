@@ -1,0 +1,9 @@
+{
+  "appId": "fr.louc.pomponsfusion",
+  "appName": "Pompons Fusion",
+  "webDir": "www",
+  "backgroundColor": "#2a1250",
+  "android": {
+    "allowMixedContent": false
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "appId": "fr.louc.pompons",
+  "appName": "Pompons",
+  "webDir": "www",
+  "backgroundColor": "#2a1250",
+  "android": {
+    "allowMixedContent": false
+  }
+}

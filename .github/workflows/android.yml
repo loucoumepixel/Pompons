@@ -59,16 +59,22 @@ jobs:
 
       - name: Clé de signature
         if: env.KEYSTORE_BASE64 != ''
-        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/pompons.keystore"
+        run: printf '%s' "$KEYSTORE_BASE64" | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/pompons.keystore"
 
       - name: Paquet AAB signé pour le Play Store
         if: env.KEYSTORE_BASE64 != ''
         run: |
+          MDP=$(printf '%s' "$KEYSTORE_PASSWORD" | tr -d ' \r\n\t')
+          echo "::add-mask::$MDP"
+          if ! keytool -list -keystore "$RUNNER_TEMP/pompons.keystore" -storepass "$MDP" -alias pompons > /dev/null 2>&1; then
+            echo "::error::Le secret KEYSTORE_PASSWORD ne correspond pas a la cle (longueur recue : ${#MDP} caracteres, attendue : 24)."
+            exit 1
+          fi
           cd android && ./gradlew --no-daemon bundleRelease \
             -Pandroid.injected.signing.store.file="$RUNNER_TEMP/pompons.keystore" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.store.password="$MDP" \
             -Pandroid.injected.signing.key.alias=pompons \
-            -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"
+            -Pandroid.injected.signing.key.password="$MDP"
 
       - uses: actions/upload-artifact@v4
         with:

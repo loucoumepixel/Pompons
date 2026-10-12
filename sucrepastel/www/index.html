@@ -767,6 +767,8 @@ function recette(i) {
 function genererNiveau(i, facile) {
   const cal = (typeof CALIB !== 'undefined' && CALIB[i]) || null;
   if (facile == null) facile = cal ? cal[4] | 0 : 0;
+  // premier monde : on découvre, alors crème et cerises se jouent avec 4 couleurs seulement
+  if (i < PAR_MONDE && i >= 6 && cal) facile = Math.max(facile, 2);
   const rnd = aleaNiv(i + 101), m = Math.floor(i / PAR_MONDE), j = i % PAR_MONDE;
   let types = recette(i);
   if (facile >= 3 && types.length > 1) types = types.slice(0, 1);
@@ -838,6 +840,14 @@ function genererNiveau(i, facile) {
   if (!goals.length) goals.push({ type: 'score', n: 0 });
   const niv = { i, facile, monde: m, forme, rows: R, cols: C, ok, ice, lock, cream, colors, goals, moves: cal ? cal[0] : 30, stars: cal ? [0, cal[1], cal[2]] : [0, 1e9, 1e9] };
   for (const g of goals) if (g.type === 'score') g.n = cal ? cal[3] : 3000;
+  // Le robot de calibrage joue mieux qu'un humain qui découvre le jeu : on garde une
+  // bonne marge, très large au début (le niveau 1 doit se gagner à coup sûr).
+  if (cal) {
+    const k = i < 3 ? 0.45 : i < PAR_MONDE ? 0.65 : i < 2 * PAR_MONDE ? 0.75 : 0.85;
+    for (const g of goals) if (g.type === 'score') g.n = Math.round(g.n * k / 500) * 500;
+    niv.stars = niv.stars.map(v => Math.round(v * k / 500) * 500);
+    niv.moves = i < PAR_MONDE ? niv.moves + (i < 3 ? 5 : 4) : Math.round(niv.moves * 1.2) + 3;
+  }
   return niv;
 }
 

@@ -92,6 +92,14 @@ button { font-family: 'Lilita One', sans-serif; border: 0; cursor: pointer; colo
 .interrupteur.on::after { left: 30px; }
 .mochi-pop { width: 90px; margin: -8px auto 2px; display: block; }
 .credits { font-size: 13px; opacity: .7; margin-top: 12px; }
+#astuce { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); transform: translate(-50%, 140%); width: min(92vw, 420px);
+  display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.96); border-radius: 20px; padding: 10px 14px 10px 10px;
+  box-shadow: 0 6px 20px rgba(160,70,120,.25); color: #8a4a6c; font-weight: 700; font-size: 15px; line-height: 1.3; opacity: 0;
+  transition: transform .45s cubic-bezier(.2,1.4,.4,1), opacity .3s; pointer-events: none; }
+#astuce.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+#astuce img { width: 52px; height: 52px; flex: none; }
+#astuce b { color: #d0558d; }
+#astuce small { display: block; font-size: 12px; opacity: .6; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -117,6 +125,7 @@ button { font-family: 'Lilita One', sans-serif; border: 0; cursor: pointer; colo
   </div>
 </div>
 
+<div id="astuce"></div>
 <div id="voile"><div class="carte-pop" id="pop"></div></div>
 
 <script>
@@ -1668,6 +1677,7 @@ async function jouerEfface(é) {
       const s = ajouterSprite({ id: cr.id, t: cr.t, sp: cr.sp }, cr.r, cr.c); s.apparait = 0;
       particules(px(cr.c), py(cr.r), '#fff', 10, 0.8);
     }
+    if (é.créés.length) astuceSpeciaux(é.créés);
     if (é.créés.length) { son('special'); humeur('joie', 1.2); dire(['Waouh !', 'Joli !', 'Trop beau !', 'Miam !'][Math.floor(Math.random() * 4)], 1.3); }
   }, 150);
   if (é.centre && é.gain) texte('+' + é.gain, px(é.centre.c), py(é.centre.r), { taille: 18 + Math.min(10, é.chaîne * 3), bord: '#b2508a' });
@@ -1789,6 +1799,38 @@ function plusCinq() {
   dire('Allez, on y croit !', 1.8);
 }
 
+// ---------- astuces : une pastille discrète la première fois qu'on crée chaque bonbon magique ----------
+const ASTUCES = {
+  ligne: '<b>Bonbon rayé !</b> Aligne-le avec des bonbons de sa couleur : il efface toute sa rangée, dans le sens des rayures.',
+  bombe: '<b>Papillote explosive !</b> Née d\'un alignement en L ou en T. Aligne-la : elle fait exploser tout autour d\'elle.',
+  arc: '<b>Mochi arc-en-ciel !</b> Né de 5 bonbons en ligne. Échange-le avec un bonbon : toute cette couleur disparaît.',
+  combo: '<b>Astuce :</b> échange deux bonbons magiques entre eux pour un effet géant !',
+};
+const astucesVues = new Set(SAUVE.lire('astuces', []));
+let astuceMinuteur = null;
+function montrerAstuce(clef, icone) {
+  if (astucesVues.has(clef)) return false;
+  if ($('astuce').classList.contains('on')) return false; // une seule à la fois
+  astucesVues.add(clef); SAUVE.ecrire('astuces', [...astucesVues]);
+  const el = $('astuce');
+  el.innerHTML = `<img src="${icone}" alt=""><div>${ASTUCES[clef]}<small>Touche pour fermer</small></div>`;
+  el.classList.add('on'); el.onclick = cacherAstuce;
+  clearTimeout(astuceMinuteur); astuceMinuteur = setTimeout(cacherAstuce, 6500);
+  return true;
+}
+function cacherAstuce() { clearTimeout(astuceMinuteur); $('astuce').classList.remove('on'); }
+function astuceSpeciaux(créés) {
+  for (const cr of créés) {
+    const clef = cr.sp === SP.ARC ? 'arc' : cr.sp === SP.BOMBE ? 'bombe' : 'ligne';
+    if (montrerAstuce(clef, spriteBonbon(cr.sp === SP.ARC ? 6 : cr.t, cr.sp, 104).toDataURL())) return;
+  }
+  // une fois les trois découverts : l'astuce des combinaisons, dès que deux magiques sont sur le plateau
+  if (['ligne', 'bombe', 'arc'].every(k => astucesVues.has(k)) && partie) {
+    let n = 0; for (const l of partie.p.g) for (const x of l) if (x && x.sp) n++;
+    if (n >= 2) montrerAstuce('combo', spriteBonbon(0, SP.BOMBE, 104).toDataURL());
+  }
+}
+
 'use strict';
 // ===== Écrans : titre, carte des niveaux, fenêtres =====
 let ecranActuel = 'titre', popOuverte = null;
@@ -1798,6 +1840,7 @@ const debloque = () => { let i = 0; while (i < NB_NIVEAUX - 1 && etoiles[i] > 0)
 const totalEtoiles = () => etoiles.reduce((a, b) => a + b, 0);
 
 function montrer(nom) {
+  if (typeof cacherAstuce === 'function') cacherAstuce();
   ecranActuel = nom;
   for (const e of ['titre', 'carte']) $(e).classList.toggle('on', e === nom);
   actif = nom === 'jeu';

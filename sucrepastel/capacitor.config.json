@@ -1,0 +1,9 @@
+{
+  "appId": "fr.louc.sucrepastel",
+  "appName": "Sucre Pastel",
+  "webDir": "www",
+  "backgroundColor": "#ffe6f0",
+  "android": {
+    "allowMixedContent": false
+  }
+}

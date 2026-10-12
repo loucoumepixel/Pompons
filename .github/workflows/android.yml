@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jeu: [pompons, fusion]
+        jeu: [sucrepastel]
     defaults:
       run:
         working-directory: ${{ matrix.jeu }}
@@ -43,8 +43,7 @@ jobs:
       - name: Créer le projet Android, les icônes et l'écran de démarrage
         run: npm run android
 
-      - name: Écran bloqué en portrait (Pompons Fusion)
-        if: matrix.jeu == 'fusion'
+      - name: Écran bloqué en portrait
         run: |
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity"\n            android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml
           grep -n "screenOrientation" android/app/src/main/AndroidManifest.xml

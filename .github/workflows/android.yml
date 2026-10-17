@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jeu: [sucrepastel]
+        jeu: [sucrepastel, jardinsonore]
     defaults:
       run:
         working-directory: ${{ matrix.jeu }}

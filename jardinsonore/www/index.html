@@ -34,14 +34,28 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 .rond img { width: 34px; height: 34px; }
 
 /* titre */
-#titre .contenu { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: calc(env(safe-area-inset-top) + 9vh) 16px env(safe-area-inset-bottom); pointer-events: none; }
+#titre .contenu { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 7vh) 16px calc(env(safe-area-inset-bottom) + 7vh); pointer-events: none; }
 #titre .contenu > * { pointer-events: auto; }
-.logo { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: clamp(56px, 18vw, 104px); line-height: .92; margin: 0; text-align: center; }
-.logo span { display: inline-block; -webkit-text-stroke: 11px #fff; paint-order: stroke fill; text-shadow: 0 7px 0 rgba(255,255,255,.55), 0 14px 26px rgba(60,90,160,.3); animation: lettre 2.6s ease-in-out infinite; }
-@keyframes lettre { 0%,100% { transform: translateY(0) rotate(0) } 30% { transform: translateY(-9px) rotate(-3deg) } 60% { transform: translateY(0) rotate(2deg) } }
-#sous-titre { font-weight: 800; font-size: 18px; color: #4a6f9a; background: rgba(255,255,255,.75); padding: 3px 16px; border-radius: 99px; }
-#b-jouer { margin-top: 2vh; font-size: 32px; padding: 14px 60px 16px; animation: respire 2s ease-in-out infinite; }
+#titre .tete, #titre .pied { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.logo { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: clamp(58px, 19vw, 108px); line-height: .9; margin: 0; text-align: center; filter: drop-shadow(0 10px 18px rgba(70,60,140,.28)); }
+.logo span { display: inline-block; -webkit-text-stroke: 12px #fff; paint-order: stroke fill; text-shadow: 0 5px 0 #fff, 0 9px 0 #d9c9f2, 0 11px 0 #c3aee8; animation: lettre 3.2s ease-in-out infinite; }
+.logo span.reflet { -webkit-text-stroke: 0; text-shadow: none; position: absolute; left: 0; top: 0; color: transparent; background: linear-gradient(175deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.25) 30%, rgba(255,255,255,0) 42%); -webkit-background-clip: text; background-clip: text; }
+.lettre { position: relative; display: inline-block; }
+@keyframes lettre { 0%,100% { transform: translateY(0) rotate(0) } 30% { transform: translateY(-8px) rotate(-3deg) } 60% { transform: translateY(0) rotate(2deg) } }
+#sous-titre { position: relative; font-family: 'Fredoka'; font-weight: 600; font-size: clamp(15px, 4.3vw, 19px); color: #fff; background: linear-gradient(#ff9cc2, #ef6fa2); padding: 6px 22px 8px; border-radius: 6px; box-shadow: 0 4px 0 #cf4f86, 0 8px 16px rgba(200,70,130,.25); text-shadow: 0 2px 0 rgba(180,50,110,.35); margin-top: 4px; }
+#sous-titre::before, #sous-titre::after { content: ''; position: absolute; top: 9px; width: 22px; height: 100%; background: #e2588f; z-index: -1; }
+#sous-titre::before { left: -16px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%); }
+#sous-titre::after { right: -16px; clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%); }
+#b-jouer { position: relative; overflow: hidden; font-size: 34px; padding: 14px 52px 16px 40px; border-radius: 40px; display: flex; align-items: center; gap: 12px; animation: respire 2.2s ease-in-out infinite; border: 4px solid #fff; box-shadow: 0 6px 0 #2a9a56, 0 14px 26px rgba(40,120,70,.35); }
+#b-jouer svg { width: 30px; height: 30px; flex: none; filter: drop-shadow(0 2px 0 rgba(30,120,70,.35)); }
+#b-jouer::before { content: ''; position: absolute; left: 10%; right: 10%; top: 5px; height: 38%; border-radius: 30px; background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,.08)); pointer-events: none; }
+#b-jouer::after { content: ''; position: absolute; top: -20%; bottom: -20%; width: 34px; left: -60px; background: rgba(255,255,255,.45); transform: skewX(-20deg); animation: reflet 3.4s ease-in-out infinite 1s; pointer-events: none; }
+@keyframes reflet { 0%, 60% { left: -60px } 85%, 100% { left: 115% } }
 @keyframes respire { 0%,100% { transform: scale(1) } 50% { transform: scale(1.05) } }
+#progres-titre { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.88); border-radius: 99px; padding: 4px 14px 4px 6px; font-family: 'Fredoka'; font-weight: 600; font-size: 17px; color: #6b4a8a; box-shadow: 0 4px 12px rgba(40,70,90,.2); }
+#progres-titre img { width: 28px; height: 28px; }
+#progres-titre img + span + img { margin-left: 6px; }
+#progres-titre.cache { visibility: hidden; }
 #titre .coin { position: absolute; top: calc(env(safe-area-inset-top) + 14px); right: 14px; }
 
 /* barres du haut */
@@ -140,6 +154,38 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 .ligne-doree.non img { filter: grayscale(1) opacity(.5); }
 .nouvelle { position: relative; font-weight: 800; font-size: 14px; color: #8566dd; margin: -4px 0 10px; }
 #b-passer { position: absolute; top: calc(env(safe-area-inset-top) + 14px); right: 14px; opacity: .9; }
+.onglets { display: flex; background: rgba(255,255,255,.9); border-radius: 99px; padding: 4px; box-shadow: 0 4px 12px rgba(40,70,90,.18); }
+.onglets button { background: none; font-family: 'Fredoka'; font-weight: 600; font-size: 17px; color: #8f7aa8; padding: 7px 16px 8px; border-radius: 99px; transition: background .2s, color .2s; }
+.onglets button.sel { background: linear-gradient(#8ee6a8, #3fbf72); color: #fff; box-shadow: 0 3px 0 #2a9a56; }
+#commandes { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: flex-end; gap: 14px; pointer-events: none !important; }
+#commandes.cache, #vue-herbier.cache { display: none; }
+.cmd { pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0; background: none; }
+.cmd .rond { width: 48px; height: 48px; }
+.cmd .rond.grand { width: 62px; height: 62px; }
+.cmd .rond.grand svg { margin-left: 0; width: 30px; height: 30px; }
+.cmd:active .rond { transform: scale(.9); }
+.cmd small { font-family: 'Nunito'; font-weight: 800; font-size: 12px; color: #fff; text-shadow: 0 1px 3px rgba(30,60,30,.55); white-space: nowrap; }
+.graine .cadenas { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Fredoka'; font-weight: 700; font-size: 26px; color: #8f7aa8; }
+.graine.vide img { filter: brightness(0) opacity(.15); }
+#vue-herbier { position: absolute; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 76px); max-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 96px); width: min(94vw, 400px); overflow-y: auto; background: linear-gradient(#fff, #f6fff4); border-radius: 26px; padding: 14px 12px; text-align: center; box-shadow: 0 12px 30px rgba(40,50,90,.3); border: 4px solid #fff; }
+.champ { width: 100%; font-family: 'Nunito'; font-weight: 800; font-size: 17px; color: var(--texte); padding: 10px 14px; border-radius: 14px; border: 3px solid #d9ecd0; background: #fff; outline: none; }
+.champ:focus { border-color: #8ee6a8; }
+.champ.erreur { border-color: #ff8fb1; animation: secoue .4s; }
+.liste-melodies { max-height: 52vh; overflow-y: auto; text-align: left; margin: 0 -6px; padding: 0 6px; }
+.liste-melodies h3 { font-family: 'Fredoka'; font-weight: 600; font-size: 16px; color: #6b4a8a; margin: 10px 0 6px; }
+.modeles { display: flex; gap: 6px; }
+.modele { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #f4faf0; border-radius: 14px; padding: 8px 4px; font-family: 'Nunito'; font-weight: 800; font-size: 13px; color: var(--texte); line-height: 1.1; }
+.modele span { font-size: 22px; }
+.ligne-melodie { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ligne-melodie .ouvrir { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; background: #f4faf0; border-radius: 14px; padding: 6px 10px; font-family: 'Nunito'; font-weight: 800; font-size: 15px; color: var(--texte); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ligne-melodie img { width: 30px; height: 30px; flex: none; }
+.mini { width: 40px; height: 40px; border-radius: 12px; background: #f4faf0; flex: none; display: grid; place-items: center; padding: 0; }
+.mini svg { width: 22px; height: 22px; }
+.ligne-code { display: flex; gap: 8px; align-items: center; }
+.ligne-code .champ { flex: 1; min-width: 0; font-size: 15px; }
+.testeurs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-height: 40vh; overflow-y: auto; }
+.testeurs span { display: flex; align-items: center; gap: 4px; background: #f4faf0; border-radius: 99px; padding: 3px 12px 3px 4px; font-weight: 800; font-size: 15px; }
+.testeurs img { width: 26px; height: 26px; }
 .credits { font-size: 12px; opacity: .6; margin: 14px 0 0; }
 </style>
 </head>
@@ -149,9 +195,14 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 
 <div id="titre" class="ecran">
   <div class="contenu">
-    <h1 class="logo" id="logo"></h1>
-    <div id="sous-titre"></div>
-    <button class="btn vert" id="b-jouer">Jouer</button>
+    <div class="tete">
+      <h1 class="logo" id="logo"></h1>
+      <div id="sous-titre"></div>
+    </div>
+    <div class="pied">
+      <button class="btn vert" id="b-jouer"><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="#fff"/></svg><span id="lab-jouer">Jouer</span></button>
+      <div id="progres-titre" class="cache"><img id="ic-fleur-t" alt=""><span id="pt-fleurs"></span><img id="ic-doree-t" alt=""><span id="pt-dorees"></span></div>
+    </div>
   </div>
   <button class="rond coin" id="b-reglages-titre" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="#7f63c0"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.3 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
 </div>
@@ -163,7 +214,6 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
     <button class="rond" id="b-reglages-carte" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="#7f63c0"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.3 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.4 7.4 0 0 0 1.7 1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
   </div>
   <div id="barre-carte">
-    <button class="btn petit lav" id="b-herbier"><img id="ic-herbier" alt=""><span id="lab-herbier"></span></button>
     <button class="btn petit vert" id="b-jardin"><img id="ic-jardin" alt=""><span id="lab-jardin"></span></button>
   </div>
 </div>
@@ -187,10 +237,17 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 <div id="jardin" class="ecran">
   <div class="haut">
     <button class="rond" id="b-retour-jardin" aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="#7f63c0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <div id="titre-jardin" class="titre-pill"></div>
-    <button class="rond" id="b-herbier-jardin" aria-label="Herbier"><img id="ic-herbier2" alt=""></button>
+    <div class="onglets"><button id="o-compo" class="sel"></button><button id="o-herbier"></button></div>
+    <button class="rond" id="b-aide-jardin" aria-label="Aide"><svg viewBox="0 0 24 24"><text x="12" y="17.5" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="17" fill="#7f63c0">?</text></svg></button>
   </div>
   <div id="msg-jardin"></div>
+  <div id="vue-herbier" class="cache"></div>
+  <div id="commandes">
+    <button class="cmd" id="b-effacer"><span class="rond"><svg viewBox="0 0 24 24" fill="none" stroke="#7f63c0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></svg></span><small id="lab-effacer"></small></button>
+    <button class="cmd" id="b-lecture-cmd"><span class="rond grand" id="b-lecture"></span><small id="lab-lecture"></small></button>
+    <button class="cmd" id="b-enregistrer"><span class="rond"><svg viewBox="0 0 24 24" fill="none" stroke="#7f63c0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg></span><small id="lab-enregistrer"></small></button>
+    <button class="cmd" id="b-melodies"><span class="rond"><svg viewBox="0 0 24 24" fill="#7f63c0"><path d="M9 17.5a2.8 2.3 0 1 1-1.2-1.9V5.5l11-2.5v11.5a2.8 2.3 0 1 1-1.2-1.9V7.2L9 9z"/></svg></span><small id="lab-melodies"></small></button>
+  </div>
   <div id="graines"></div>
 </div>
 
@@ -480,6 +537,7 @@ const SON = (() => {
     [0, 4, 7].forEach(c => osc('sine', fq(60 - 12 + c), t0, t * pas + 0.8, 0.03, busSons, 0.3, 0.6));
     return t * pas + 1;
   }
+  function noteFleur(esp, y, rows) { if (ac) I[FAMILLE[esp % 4]](hauteur(rows - 1 - y + 3, 0), T(), esp % 4 === 2 ? 0.5 : 0.85); }
   // ----- jardin à décorer : une boîte à musique, la lumière passe de colonne en colonne -----
   const boite = { on: false, t0: 0, pas: 0.3, n: 0, prochain: 0, minuteur: null, lire: null };
   function boitePlanifier() {
@@ -511,7 +569,7 @@ const SON = (() => {
   }
   // position de la lumière (en colonnes, avec décimales), ou -1 si la boîte ne joue pas
   const boitePhase = () => boite.on && ac ? (ac.currentTime - boite.t0) / boite.pas : -1;
-  return { init, jouer, musique, maj, pause, attenuer, temps, hauteur, concert, chanson, boiteJouer, boitePhase, setMonde: m => { monde = m; } };
+  return { init, jouer, musique, maj, pause, attenuer, temps, hauteur, concert, chanson, noteFleur, boiteJouer, boitePhase, setMonde: m => { monde = m; } };
 })();
 function son(nom, a, b, c, d) { try { SON.jouer[nom] && SON.jouer[nom](a, b, c, d); } catch (e) { } }
 
@@ -999,22 +1057,21 @@ function dessinerCiel(g, W, H, m, seed) {
     g.fillStyle = `rgba(255,255,255,${0.35 + r() * 0.3})`;
     g.beginPath(); g.ellipse(cx, cy, cw * 0.5, cw * 0.14, 0, 0, TAU); g.ellipse(cx - cw * 0.15, cy - cw * 0.08, cw * 0.2, cw * 0.14, 0, 0, TAU); g.ellipse(cx + cw * 0.12, cy - cw * 0.1, cw * 0.24, cw * 0.17, 0, 0, TAU); g.fill();
   }
-  // collines lointaines
+  // collines lointaines : couleurs pleines fondues dans le ciel (plus de cercles translucides qui se superposent)
   const cols = [M.haie, M.herbe[2], M.herbe[1]];
+  const mix = (a, b, k) => { const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
   for (let k = 0; k < 3; k++) {
-    const base = H * (0.3 + k * 0.12);
-    g.fillStyle = cols[k]; g.globalAlpha = 0.35 + k * 0.25;
+    const base = H * (0.3 + k * 0.12), crete = x => base + Math.sin(x / W * 5 + k * 2 + seed) * H * 0.03 + Math.sin(x / W * 13 + k) * H * 0.01;
+    g.fillStyle = mix(cols[k], M.ciel[2], 1 - (0.35 + k * 0.25));
     g.beginPath(); g.moveTo(0, H);
-    for (let q = 0, x = 0; q <= 24; q++, x = q * W / 24) g.lineTo(x, base + Math.sin(x / W * 5 + k * 2 + seed) * H * 0.03 + Math.sin(x / W * 13 + k) * H * 0.01);
+    for (let q = 0, x = 0; q <= 24; q++, x = q * W / 24) g.lineTo(x, crete(x));
     g.lineTo(W, H); g.fill();
-    // petits arbres ronds sur la crête
+    // petits arbres ronds sur la crête, de la même couleur que leur colline
     for (let i = 0; i < 6; i++) {
-      const tx = r() * W, ty = base + Math.sin(tx / W * 5 + k * 2 + seed) * H * 0.03;
-      const tr = H * (0.015 + k * 0.008) * (0.7 + r() * 0.6);
+      const tx = r() * W, ty = crete(tx), tr = H * (0.015 + k * 0.008) * (0.7 + r() * 0.6);
       g.beginPath(); g.arc(tx, ty - tr * 0.6, tr, 0, TAU); g.fill();
     }
   }
-  g.globalAlpha = 1;
   // prairie du premier plan
   const gp = g.createLinearGradient(0, H * 0.62, 0, H);
   gp.addColorStop(0, M.herbe[1]); gp.addColorStop(1, M.herbe[2]);
@@ -1138,7 +1195,17 @@ const TEXTES = {
     ecouter: 'Écouter', manque: n => n > 1 ? 'Encore ' + n + ' bourgeons à réveiller…' : 'Encore un bourgeon à réveiller…',
     doreeGagnee: 'Note dorée gagnée !', doreeDeja: 'Note dorée déjà gagnée', doreeManque: 'Une note dorée t’attend encore ici…',
     rDefi: 'Mode défi (mélodie cachée)', rIntro: 'Revoir l’introduction', passer: 'Passer', introA: 'Chut… le jardin s’est endormi.', introB: 'Réveille-le en musique !', nouvelleFleur: n => 'Nouvelle fleur dans l’herbier : ' + n + ' !',
-    herbier: 'Herbier', herbierTxt: 'Chaque fleur éclose rejoint ton herbier. Touche-la pour écouter sa chanson.', eclose: n => 'Éclose ' + n + ' fois', inconnue: 'À découvrir',
+    merciPanneau: 'Merci', merciTitre: 'Merci !', merciTxt: 'Ce jardin a fleuri grâce à ses tout premiers jardiniers :', merciNom: n => 'Merci ' + n + ' !', merciCredits: 'Merci à nos premiers jardiniers :', merciMelodie: 'La valse des jardiniers', salut: n => 'Coucou ' + n + ' ! Merci de m’avoir aidée à faire chanter ce jardin 💛',
+    rappel: 'Fais passer la mélodie par tous les bourgeons : touche une feuille pour la tourner. Bloqué ? Touche la luciole jaune.', relire: 'Touche-moi quand tu veux pour relire mon conseil !',
+    ongletJardin: 'Composer', ongletHerbier: 'Herbier', aigu: 'aigu', grave: 'grave', lecture: 'Écouter', pause: 'Pause', effacer: 'Effacer', enregistrer: 'Enregistrer', melodies: 'Mes mélodies', annuler: 'Annuler',
+    tuto1: '<b>1/3</b> · Touche la case qui brille pour planter une fleur.', tuto2: '<b>2/3</b> · Écoute ! La lumière fait chanter ta fleur. Plus elle est haut, plus la note est aiguë. Plantes-en d’autres !', tuto3: '<b>3/3</b> · Bravo ! Quand ta mélodie te plaît, touche <b>Enregistrer</b> pour la garder.',
+    instruments: ['Kalimba', 'Harpe', 'Cloche', 'Marimba'], especeVerrou: 'Finis d’autres niveaux pour découvrir cette fleur et son instrument.', videRien: 'Plante d’abord une fleur dans le jardin.',
+    effacerTxt: 'Retirer toutes les fleurs du jardin ? Tes mélodies enregistrées ne bougent pas.', nomMelodie: 'Donne un nom à ta mélodie :', defautNom: n => 'Ma mélodie ' + n, enregistree: 'Mélodie enregistrée dans Mes mélodies !',
+    pleinMelodies: n => 'Tu as déjà ' + n + ' mélodies : supprimes-en une pour en garder une nouvelle.', chargee: 'elle joue ! Change-la à ta guise.',
+    modeles: ['Comptine', 'Berceuse', 'Pluie d’étoiles'], pourCommencer: 'Pour commencer', mesMelodies: 'Mes mélodies', aucuneMelodie: 'Aucune mélodie pour l’instant. Compose, puis touche Enregistrer !',
+    partager: 'Partager', supprimer: 'Supprimer', collerCode: 'Un ami t’a envoyé un code ?', codeInvalide: 'Ce code ne marche pas : il doit commencer par JS-.', codeCopie: 'Code copié ! Colle-le dans un message à un ami.', codeAffiche: 'Copie ce code et envoie-le à un ami.',
+    partageTxt: (nom, code) => '🎵 Écoute ma mélodie « ' + nom + ' » dans Jardin Sonore ! Ouvre Mon jardin › Mes mélodies et colle ce code : ' + code,
+    herbier: 'Herbier', herbierTxt: 'Chaque fleur découverte devient un instrument de ton jardin. Touche-la pour écouter sa chanson', eclose: n => 'Éclose ' + n + ' fois', inconnue: 'À découvrir',
     especes: ['Clochette rose', 'Soleillette', 'Étoile mauve', 'Bleuet de rosée', 'Lune blanche', 'Corail chanteur', 'Pivoine-flûte', 'Menthe à notes', 'Bouton d’or'],
     jardin: 'Mon jardin', jardinTxt: 'Plante tes fleurs : la lumière passe de gauche à droite et les fait chanter. Plus c’est haut, plus c’est aigu.',
     jardinVide: 'Finis des niveaux pour récolter des fleurs !', jardinPlein: 'Plus de fleurs de cette sorte. Touche une fleur du jardin pour la reprendre.',
@@ -1180,7 +1247,17 @@ const TEXTES = {
     ecouter: 'Listen', manque: n => n > 1 ? n + ' buds still asleep…' : 'One bud still asleep…',
     doreeGagnee: 'Golden note won!', doreeDeja: 'Golden note already won', doreeManque: 'A golden note is still hiding here…',
     rDefi: 'Challenge mode (hidden melody)', rIntro: 'Watch the intro again', passer: 'Skip', introA: 'Shh… the garden has fallen asleep.', introB: 'Wake it up with music!', nouvelleFleur: n => 'New flower in your herbarium: ' + n + '!',
-    herbier: 'Herbarium', herbierTxt: 'Every flower you bring to bloom joins your herbarium. Tap one to hear its song.', eclose: n => 'Bloomed ' + n + (n > 1 ? ' times' : ' time'), inconnue: 'Not found yet',
+    merciPanneau: 'Thanks', merciTitre: 'Thank you!', merciTxt: 'This garden bloomed thanks to its very first gardeners:', merciNom: n => 'Thank you ' + n + '!', merciCredits: 'Thanks to our first gardeners:', merciMelodie: 'The gardeners’ waltz', salut: n => 'Hi ' + n + '! Thank you for helping this garden sing 💛',
+    rappel: 'Guide the melody through every bud: tap a leaf to turn it. Stuck? Tap the yellow firefly.', relire: 'Tap me any time to read my tip again!',
+    ongletJardin: 'Compose', ongletHerbier: 'Herbarium', aigu: 'high', grave: 'low', lecture: 'Play', pause: 'Pause', effacer: 'Clear', enregistrer: 'Save', melodies: 'My melodies', annuler: 'Cancel',
+    tuto1: '<b>1/3</b> · Tap the glowing square to plant a flower.', tuto2: '<b>2/3</b> · Listen! The light makes your flower sing. The higher it is, the higher the note. Plant some more!', tuto3: '<b>3/3</b> · Well done! When you like your melody, tap <b>Save</b> to keep it.',
+    instruments: ['Kalimba', 'Harp', 'Bell', 'Marimba'], especeVerrou: 'Finish more levels to discover this flower and its instrument.', videRien: 'Plant a flower in the garden first.',
+    effacerTxt: 'Remove every flower from the garden? Your saved melodies stay safe.', nomMelodie: 'Give your melody a name:', defautNom: n => 'My melody ' + n, enregistree: 'Melody saved in My melodies!',
+    pleinMelodies: n => 'You already have ' + n + ' melodies: delete one to keep a new one.', chargee: 'now playing! Change it as you like.',
+    modeles: ['Nursery rhyme', 'Lullaby', 'Starfall'], pourCommencer: 'To get started', mesMelodies: 'My melodies', aucuneMelodie: 'No melodies yet. Compose, then tap Save!',
+    partager: 'Share', supprimer: 'Delete', collerCode: 'Did a friend send you a code?', codeInvalide: 'This code doesn’t work: it should start with JS-.', codeCopie: 'Code copied! Paste it in a message to a friend.', codeAffiche: 'Copy this code and send it to a friend.',
+    partageTxt: (nom, code) => '🎵 Listen to my melody "' + nom + '" in Jardin Sonore! Open My garden › My melodies and paste this code: ' + code,
+    herbier: 'Herbarium', herbierTxt: 'Every flower you discover becomes an instrument in your garden. Tap one to hear its song', eclose: n => 'Bloomed ' + n + (n > 1 ? ' times' : ' time'), inconnue: 'Not found yet',
     especes: ['Pink Bellflower', 'Sunlet', 'Mauve Star', 'Dew Cornflower', 'White Moon', 'Singing Coral', 'Flute Peony', 'Note Mint', 'Buttercup'],
     jardin: 'My garden', jardinTxt: 'Plant your flowers: the light sweeps left to right and makes them sing. Higher rows play higher notes.',
     jardinVide: 'Finish levels to gather flowers!', jardinPlein: 'No more flowers of this kind. Tap a flower in the garden to pick it up.',
@@ -1292,8 +1369,8 @@ function chargerNiveau(n) {
   mettreEnPage();
   recalculer(true);
   J.melo.x = J.bx - 40; J.melo.y = J.by - 60;
-  const c = conseil(n);
-  montrerBulle(c, c ? 6.5 : 0);
+  const c = conseil(n); J.rappel = null;
+  montrerBulle(c, c ? 6.5 : 0, true);
   if (n === 0) J.indices.push(J.niv.sol[0]); // premier niveau : on montre où planter
   if (n === 3) $('b-indice').classList.add('appel'); // le conseil parle de la luciole : elle s'anime
   majHud();
@@ -1522,6 +1599,9 @@ function dessinerParticules(g) {
       g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 7); for (let k = -2; k <= 2; k++) { g.moveTo(0, 0); g.lineTo(k * 2.2, -3); } g.stroke(); g.restore();
     } else if (p.type === 'anneau') {
       g.strokeStyle = p.col; g.lineWidth = 3 * (1 - u); g.beginPath(); g.arc(p.x, p.y, p.taille * (0.2 + u), 0, TAU); g.stroke();
+    } else if (p.type === 'texte') {
+      g.font = '700 17px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+      g.lineWidth = 5; g.strokeStyle = '#fff'; g.strokeText(p.txt, p.x, p.y); g.fillStyle = p.col && p.col !== '#fff' ? p.col : '#6b4a8a'; g.fillText(p.txt, p.x, p.y);
     } else if (p.type === 'lueur') {
       const r = p.taille; const gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
       gr.addColorStop(0, p.col); gr.addColorStop(1, 'rgba(255,255,200,0)'); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, r, 0, TAU); g.fill();
@@ -1674,6 +1754,12 @@ function dessinerJeu(dt) {
   if (Math.abs(vx) > 4) mo.dir = vx > 0 ? -1 : 1;
   const hop = tJeu < (J.meloJoie || 0) ? Math.abs(Math.sin((J.meloJoie - tJeu) * 9)) * 8 : 0;
   dessinerMelo(g, mo.x, mo.y - hop, 50, tJeu, J.concert || hop ? 'joie' : mo.humeur, mo.dir);
+  if (!J.concert && !J.bulle) { // petite bulle « … » : on peut toucher Mélo pour relire son conseil
+    const bx = mo.x + 26, by = mo.y - hop - 34 + Math.sin(tJeu * 2.2) * 2;
+    g.fillStyle = 'rgba(255,255,255,.95)'; g.beginPath(); g.roundRect(bx - 15, by - 10, 30, 20, 10); g.fill();
+    g.beginPath(); g.moveTo(bx - 8, by + 8); g.lineTo(bx - 14, by + 15); g.lineTo(bx - 2, by + 9); g.fill();
+    g.fillStyle = '#7f63c0'; for (let k = -1; k <= 1; k++) { g.beginPath(); g.arc(bx + k * 7, by, 2.3 + 0.6 * Math.max(0, Math.sin(tJeu * 4 - k)), 0, TAU); g.fill(); }
+  }
   placerBulle();
 }
 
@@ -1818,6 +1904,7 @@ cv.addEventListener('pointerdown', ev => {
   if (ecranActuel !== 'jeu' || popOuverte) return;
   SON.init();
   const x = ev.clientX, y = ev.clientY;
+  if (!J.concert && Math.hypot(x - J.melo.x, y - J.melo.y) < 38) { toucherMelo(); return; }
   if (ecranActuel === 'jeu' && !J.concert) {
     const i = caseSous(x, y);
     if (i >= 0 && J.pieces[i]) { J.drag = { de: i, t: J.pieces[i], x, y, x0: x, y0: y, bouge: false, id: ev.pointerId }; cv.setPointerCapture && cv.setPointerCapture(ev.pointerId); return; }
@@ -1838,7 +1925,7 @@ cv.addEventListener('pointerup', ev => {
       if (d.t === 3) { // le pissenlit ne tourne pas : il frémit, et on explique comment le reprendre
         J.appui = { i: d.de, t: tJeu }; son('tourne', J.L.h - 1 - ((d.de / J.L.w) | 0)); vibrer();
         const [cx, cy] = centre(d.de); for (let k = 0; k < 4; k++) particule('graine', cx, cy - J.s * 0.2, { vx: (Math.random() - 0.5) * 50, vy: -15 - Math.random() * 20, vie: 1.6 });
-        if (!J.astucePissenlit) { J.astucePissenlit = true; montrerBulle(T('astucePissenlit'), 3.5); }
+        if (!J.astucePissenlit) { J.astucePissenlit = true; montrerBulle(T('astucePissenlit'), 3.5, true); }
       }
       else { memoriser(); J.pieces[d.de] = d.t === 1 ? 2 : 1; J.appui = { i: d.de, t: tJeu }; son('tourne', J.L.h - 1 - ((d.de / J.L.w) | 0)); vibrer(); recalculer(); }
       return;
@@ -1913,14 +2000,26 @@ window.addEventListener('pointerup', ev => {
   if (libreJoueur(c)) poser(c, d.t); else son('retire');
 });
 
-function montrerBulle(texte, duree) {
+function montrerBulle(texte, duree, garder) { // garder : Mélo pourra le redire quand on la touche
   const b = $('bulle');
   if (!texte) { b.classList.remove('on'); J.bulle = null; return; }
-  b.textContent = texte; b.classList.add('on'); J.bulle = { fin: tJeu + (duree || 4) };
+  if (garder) J.rappel = texte;
+  b.textContent = texte; b.classList.add('on'); J.bulle = { fin: tJeu + (duree || 4), garder };
+}
+function toucherMelo() { // relire le conseil du niveau (ou la règle du jeu s'il n'y en a pas)
+  if (salutMelo()) return;
+  J.meloJoie = tJeu + 0.8; son('clic'); vibrer();
+  const txt = J.rappel || T('rappel');
+  if (J.bulle && $('bulle').textContent === txt) { montrerBulle(null); return; }
+  montrerBulle(txt, 7);
 }
 function placerBulle() {
   const b = $('bulle'); if (!J.bulle) return;
-  if (tJeu > J.bulle.fin) { b.classList.remove('on'); J.bulle = null; return; }
+  if (tJeu > J.bulle.fin) {
+    const garder = J.bulle.garder; b.classList.remove('on'); J.bulle = null;
+    if (garder && !SAUVE.lire('meloRelire', false)) { SAUVE.ecrire('meloRelire', true); montrerBulle(T('relire'), 3.5); } // une seule fois : on apprend qu'elle répète
+    return;
+  }
   const x = clamp(J.melo.x + 34, 12, W - 12 - b.offsetWidth), y = Math.max(bords.h + 64, J.melo.y - b.offsetHeight / 2 - 4);
   b.style.transform = `translate(${x}px, ${y}px)`;
 }
@@ -1956,105 +2055,146 @@ function recommencer() {
 }
 
 'use strict';
-// ===== Mon jardin : on plante les fleurs gagnées, et le jardin devient une boîte à musique =====
-// Chaque niveau fini donne une fleur de son espèce. La lumière passe de colonne en colonne :
-// chaque fleur joue une note (plus elle est haut, plus c'est aigu ; l'espèce choisit l'instrument).
+// ===== Mon jardin : une boîte à musique où l'on compose avec les fleurs découvertes =====
+// La lumière passe de colonne en colonne : chaque fleur joue une note (plus elle est haut, plus c'est aigu ;
+// l'espèce choisit l'instrument). Chaque espèce découverte dans les niveaux devient un instrument, sans limite.
+// On peut enregistrer ses mélodies, partir d'un modèle, et partager une mélodie par un petit code (JS-…).
 // Les notes dorées débloquent des décorations, et chacune ajoute un accompagnement.
-const JCOLS = 8, JLIGNES = 6;
+const JCOLS = 8, JLIGNES = 6, MAX_MELODIES = 8;
 const DECOS = [['fontaine', 2], ['kiosque', 8], ['lanternes', 20], ['carillon', 40]];
+const INSTRUMENTS = ['kalimba', 'harpe', 'cloche', 'marimba'];
 const JARDIN = (() => {
   const e = SAUVE.lire('jardin', {});
   const g = Array.from({ length: JCOLS * JLIGNES }, (_, i) => (e.g && e.g[i]) | 0);
-  return { g, d: Object.assign({}, e.d), sel: -1, s: 40, x: 0, y: 0, dy: 0, colPrec: -1, rebond: new Float32Array(JCOLS * JLIGNES), msg: null };
+  return { g, d: Object.assign({}, e.d), sel: -1, s: 40, x: 0, y: 0, dy: 0, ty: 0, colPrec: -1, rebond: new Float32Array(JCOLS * JLIGNES), msg: null, onglet: 'compo', joue: false, tuto: 0, tutoT: 0 };
 })();
+const melodies = SAUVE.lire('melodies', []);
 const sauverJardin = () => SAUVE.ecrire('jardin', { g: JARDIN.g, d: JARDIN.d });
+const sauverMelodies = () => SAUVE.ecrire('melodies', melodies);
 const especeDuNiveau = n => (n * 3 + 1) % ESPECES.length; // la fleur que le niveau fait pousser sur la carte
-function recolte() { // fleurs disponibles par espèce (gagnées moins plantées)
-  const r = new Array(ESPECES.length).fill(0), total = new Array(ESPECES.length).fill(0);
-  faits.forEach((f, n) => { if (f) total[especeDuNiveau(n)]++; });
-  for (let k = 0; k < ESPECES.length; k++) r[k] = total[k];
-  for (const v of JARDIN.g) if (v) r[v - 1]--;
-  return { reste: r, total };
+function especesConnues() { // une espèce est connue dès qu'un niveau l'a fait pousser ou qu'elle a fleuri ; la première est offerte
+  const c = ESPECES.map((_, k) => herbier[k] > 0 || k === especeDuNiveau(0));
+  faits.forEach((f, n) => { if (f) c[especeDuNiveau(n)] = true; });
+  return c;
 }
 const decoActive = (nom, seuil) => nbDorees() >= seuil && JARDIN.d[nom] !== false;
 function etatBoite() {
   const decos = {}; for (const [nom, seuil] of DECOS) decos[nom] = decoActive(nom, seuil);
   return { grille: JARDIN.g, cols: JCOLS, rows: JLIGNES, decos };
 }
+const jardinVide = () => !JARDIN.g.some(v => v);
 
 function ouvrirJardin() {
   montrer('jardin');
-  SON.init(); SON.musique(false); SON.boiteJouer(true, etatBoite);
+  SON.init(); SON.musique(false);
   particules = [];
-  mettreEnPageJardin(); majPlateauJardin();
-  messageJardin(nbFaits() ? (SAUVE.lire('jardinVu', false) ? null : T('jardinTxt')) : T('jardinVide'), 6);
-  SAUVE.ecrire('jardinVu', true);
-  $('titre-jardin').textContent = T('jardin');
-  $('ic-herbier2').src = icone('fleur2', 40);
+  JARDIN.onglet = 'compo';
+  const c = especesConnues(); if (JARDIN.sel < 0 || !c[JARDIN.sel]) JARDIN.sel = c.findIndex(v => v);
+  mettreEnPageJardin(); majTexteJardin(); majPlateauJardin(); majOnglets();
+  lecture(!jardinVide());
+  if (!SAUVE.lire('jardinTuto', false)) demarrerTuto(); else messageJardin(null);
 }
 function fermerJardin() {
-  SON.boiteJouer(false);
+  lecture(false); finTuto(false);
   SON.musique(reglages.musique, Math.min(5, (debloque() / PAR_MONDE) | 0));
   fondu(() => ouvrirCarte());
 }
-const tailleDeco = () => Math.min(80, W / 4.6);
+function lecture(on) {
+  JARDIN.joue = on; JARDIN.colPrec = -1;
+  SON.boiteJouer(on, etatBoite);
+  $('b-lecture').innerHTML = on ? '<svg viewBox="0 0 24 24" fill="#fff"><rect x="6" y="5" width="4.2" height="14" rx="1.5"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.5"/></svg>' : '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>';
+  $('lab-lecture').textContent = on ? T('pause') : T('lecture');
+}
+const tailleDeco = () => Math.min(62, W / 5.6);
 function mettreEnPageJardin() {
-  // de haut en bas : barre, message, jardin, décorations, graines
-  const haut = bords.h + 120, bas = bords.b + 104, D = tailleDeco() + 40, dispo = H - haut - bas;
-  JARDIN.s = Math.floor(Math.min((W - 36) / JCOLS, (dispo - D - 24) / JLIGNES, 70));
-  JARDIN.x = Math.round((W - JARDIN.s * JCOLS) / 2);
-  const bloc = JARDIN.s * JLIGNES + 24 + D;
-  JARDIN.y = Math.round(haut + Math.max(0, dispo - bloc) * 0.45);
-  JARDIN.dy = JARDIN.y + JARDIN.s * JLIGNES + 24 + tailleDeco() * 0.5 + 8; // ligne des décorations
+  // de bas en haut : fleurs à planter, commandes, décorations ; le jardin prend la place qui reste en haut
+  const haut = bords.h + 118, cmd = H - bords.b - 100 - 84, ds = tailleDeco(), D = ds + 34, dispo = cmd - haut;
+  JARDIN.s = Math.floor(Math.min((W - 76) / JCOLS, (dispo - D - 34) / JLIGNES, 66));
+  JARDIN.x = Math.round((W - JARDIN.s * JCOLS) / 2 + 14); // un peu à droite : l'échelle des hauteurs est à gauche
+  const bloc = JARDIN.s * JLIGNES + 34 + D;
+  JARDIN.y = Math.round(haut + Math.max(0, dispo - bloc) * 0.5);
+  JARDIN.dy = JARDIN.y + JARDIN.s * JLIGNES + 28 + ds * 0.5; // ligne des décorations
+  $('commandes').style.top = Math.round(cmd) + 'px';
 }
 function messageJardin(txt, duree) {
   const m = $('msg-jardin');
+  clearTimeout(JARDIN.msg);
   if (!txt) { m.classList.remove('on'); return; }
-  m.textContent = txt; m.classList.add('on');
-  clearTimeout(JARDIN.msg); JARDIN.msg = setTimeout(() => m.classList.remove('on'), (duree || 3) * 1000);
+  m.innerHTML = txt; m.classList.add('on');
+  if (duree) JARDIN.msg = setTimeout(() => m.classList.remove('on'), duree * 1000);
+}
+function majTexteJardin() {
+  $('o-compo').textContent = T('ongletJardin'); $('o-herbier').textContent = T('ongletHerbier');
+  $('lab-effacer').textContent = T('effacer'); $('lab-enregistrer').textContent = T('enregistrer'); $('lab-melodies').textContent = T('melodies');
+  $('lab-lecture').textContent = JARDIN.joue ? T('pause') : T('lecture');
+}
+function majOnglets() {
+  const h = JARDIN.onglet === 'herbier';
+  $('o-compo').classList.toggle('sel', !h); $('o-herbier').classList.toggle('sel', h);
+  $('commandes').classList.toggle('cache', h); $('graines').classList.toggle('cache', h); $('vue-herbier').classList.toggle('cache', !h);
+  if (h) { remplirHerbier(); messageJardin(null); }
 }
 function majPlateauJardin() {
-  const { reste, total } = recolte(), p = $('graines'); p.innerHTML = '';
-  if (JARDIN.sel >= 0 && !total[JARDIN.sel]) JARDIN.sel = -1;
-  if (JARDIN.sel < 0) JARDIN.sel = total.findIndex(v => v > 0);
-  total.forEach((tot, k) => {
-    if (!tot) return;
+  const c = especesConnues(), p = $('graines'); p.innerHTML = '';
+  ESPECES.forEach((_, k) => {
     const b = document.createElement('button');
-    b.className = 'graine' + (JARDIN.sel === k ? ' sel' : '') + (reste[k] <= 0 ? ' vide' : '');
-    b.innerHTML = `<img src="${icone('fleur' + k, 56)}" alt=""><span class="nb">${reste[k]}</span>`;
-    b.setAttribute('aria-label', TEXTES[langue].especes[k]);
-    b.onclick = () => { JARDIN.sel = k; son('clic'); majPlateauJardin(); messageJardin(TEXTES[langue].especes[k], 1.6); };
+    b.className = 'graine' + (JARDIN.sel === k ? ' sel' : '') + (c[k] ? '' : ' vide');
+    b.innerHTML = c[k] ? `<img src="${icone('fleur' + k, 56)}" alt="">` : `<img src="${icone('fleur' + k, 56)}" alt=""><span class="cadenas">?</span>`;
+    b.setAttribute('aria-label', c[k] ? TEXTES[langue].especes[k] : T('inconnue'));
+    b.onclick = () => {
+      SON.init();
+      if (!c[k]) { son('refus'); messageJardin(T('especeVerrou'), 2.6); return; }
+      JARDIN.sel = k; SON.noteFleur(k, 2, JLIGNES); majPlateauJardin();
+      if (!JARDIN.tuto) messageJardin(`<b>${TEXTES[langue].especes[k]}</b> · ${T('instruments')[k % 4]}`, 1.8);
+    };
     p.appendChild(b);
   });
-  $('graines').classList.toggle('cache', !total.some(v => v));
+  const sel = p.querySelector('.sel'); if (sel) sel.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 }
-function posDeco(k) { return [W * (k + 0.5) / DECOS.length, JARDIN.dy]; }
+function posDeco(k) { return [JARDIN.x - 8 + JCOLS * JARDIN.s * (k + 0.5) / DECOS.length + 8, JARDIN.dy]; }
+
+// ----- prise en main : trois gestes avec Mélo -----
+function demarrerTuto() { JARDIN.tuto = 1; JARDIN.tutoT = 0; messageJardin(T('tuto1')); }
+function etapeTuto(n) { if (JARDIN.tuto && n === JARDIN.tuto + 1) { JARDIN.tuto = n; JARDIN.tutoT = 0; messageJardin(T('tuto' + n)); } }
+function finTuto(ok) { if (!JARDIN.tuto) return; JARDIN.tuto = 0; if (ok !== false) SAUVE.ecrire('jardinTuto', true); messageJardin(null); }
+function caseConseillee() { return 3 * JCOLS + 1; } // une case bien visible pour la première fleur
 
 function dessinerJardin(dt) {
-  const g = ctx, s = JARDIN.s, nuit = 0;
+  const g = ctx, s = JARDIN.s;
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
   g.drawImage(fondMonde(0), 0, 0, W, H);
   majAmbiance(dt);
+  if (JARDIN.onglet === 'herbier') { g.fillStyle = 'rgba(40,40,80,.25)'; g.fillRect(0, 0, W, H); dessinerAmbiance(g, 0); return; }
+  JARDIN.tutoT += dt;
   // haie et pelouse
   const x0 = JARDIN.x, y0 = JARDIN.y, w = JCOLS * s, h = JLIGNES * s;
   g.fillStyle = 'rgba(20,50,30,.22)'; g.beginPath(); g.roundRect(x0 - s * 0.3, y0 - s * 0.2, w + s * 0.6, h + s * 0.6, s * 0.45); g.fill();
   g.fillStyle = MONDES[0].haie; g.beginPath(); g.roundRect(x0 - s * 0.3, y0 - s * 0.3, w + s * 0.6, h + s * 0.6, s * 0.45); g.fill();
   g.fillStyle = '#9b7656'; g.beginPath(); g.roundRect(x0 - s * 0.08, y0 - s * 0.08, w + s * 0.16, h + s * 0.16, s * 0.25); g.fill();
-  // lumière de la boîte à musique
-  const ph = SON.boitePhase(), col = ph >= 0 ? Math.floor(ph) % JCOLS : -1, frac = ph >= 0 ? ph - Math.floor(ph) : 0;
   for (let y = 0; y < JLIGNES; y++) for (let x = 0; x < JCOLS; x++) {
     const px = x0 + x * s, py = y0 + y * s, e = s * 0.05;
     const gr = g.createLinearGradient(0, py, 0, py + s);
     const k = (x + y) % 2; gr.addColorStop(0, shade(MONDES[0].herbe[k], 10)); gr.addColorStop(1, MONDES[0].herbe[k]);
     g.fillStyle = gr; g.beginPath(); g.roundRect(px + e, py + e, s - 2 * e, s - 2 * e, s * 0.18); g.fill();
-    // repères de hauteur : une petite pierre plus claire à gauche des lignes aiguës
-    if (x === 0) { g.fillStyle = `rgba(255,255,255,${0.1 + 0.05 * (JLIGNES - y)})`; g.beginPath(); g.arc(px - s * 0.17, py + s / 2, s * 0.05, 0, TAU); g.fill(); }
+    if (x % 4 === 0 && x) { g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(px - 1, py + e, 2, s - 2 * e); } // repère de mesure
   }
-  if (col >= 0) {
-    const cx = x0 + (col + 0.5) * s, a = 0.55 * (1 - frac * 0.6);
-    const gl = g.createLinearGradient(cx - s * 0.6, 0, cx + s * 0.6, 0);
-    gl.addColorStop(0, 'rgba(255,250,200,0)'); gl.addColorStop(0.5, `rgba(255,250,200,${a})`); gl.addColorStop(1, 'rgba(255,250,200,0)');
-    g.fillStyle = gl; g.fillRect(cx - s * 0.6, y0 - s * 0.1, s * 1.2, h + s * 0.2);
+  // l'échelle des hauteurs, à gauche : des notes de plus en plus grandes vers l'aigu
+  for (let y = 0; y < JLIGNES; y++) {
+    const a = 0.45 + 0.5 * (JLIGNES - 1 - y) / (JLIGNES - 1);
+    g.globalAlpha = a; dessinerNote(g, x0 - s * 0.3 - 15, y0 + (y + 0.62) * s, Math.min(18, s * 0.34) * (0.7 + 0.3 * (JLIGNES - 1 - y) / (JLIGNES - 1)), '#ffffff', y % 2);
+  }
+  g.globalAlpha = 1;
+  g.font = '800 11px Nunito, sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'left'; g.fillStyle = 'rgba(255,255,255,.92)';
+  g.fillText('↑ ' + T('aigu'), x0 - s * 0.3 - 22, y0 - s * 0.3 - 9); g.fillText('↓ ' + T('grave'), x0 - s * 0.3 - 22, y0 + h + s * 0.3 + 10);
+  // la barre de lecture : elle balaie le jardin, et les fleurs qu'elle touche chantent
+  const ph = SON.boitePhase(), col = ph >= 0 ? Math.floor(ph) % JCOLS : -1;
+  if (ph >= 0) {
+    const p = (ph + 0.5) % JCOLS, bx = x0 + p * s;
+    const gl = g.createLinearGradient(bx - s * 0.7, 0, bx + s * 0.7, 0);
+    gl.addColorStop(0, 'rgba(255,250,200,0)'); gl.addColorStop(0.5, 'rgba(255,250,200,.55)'); gl.addColorStop(1, 'rgba(255,250,200,0)');
+    g.fillStyle = gl; g.fillRect(bx - s * 0.7, y0 - s * 0.1, s * 1.4, h + s * 0.2);
+    g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(bx - 1.5, y0 - s * 0.12, 3, h + s * 0.24);
+    g.beginPath(); g.moveTo(bx - 8, y0 - s * 0.12 - 10); g.lineTo(bx + 8, y0 - s * 0.12 - 10); g.lineTo(bx, y0 - s * 0.12); g.fill();
     if (col !== JARDIN.colPrec) { // la lumière arrive sur une nouvelle colonne : ses fleurs chantent
       JARDIN.colPrec = col;
       for (let y = 0; y < JLIGNES; y++) {
@@ -2063,6 +2203,7 @@ function dessinerJardin(dt) {
         const fx = x0 + (col + 0.5) * s, fy = y0 + (y + 0.35) * s;
         particule('note', fx, fy - s * 0.3, { vy: -36, vie: 1.4, col: ESPECES[v - 1].c[1], taille: 0.8 });
         eclat(fx, fy, '#fff6b0', 4, 0.6);
+        if (JARDIN.tuto === 2 && JARDIN.tutoT > 2.5) etapeTuto(3);
       }
     }
   }
@@ -2070,17 +2211,23 @@ function dessinerJardin(dt) {
   for (let y = 0; y < JLIGNES; y++) for (let x = 0; x < JCOLS; x++) {
     const i = y * JCOLS + x, v = JARDIN.g[i], cx = x0 + (x + 0.5) * s, cy = y0 + (y + 0.5) * s;
     if (!v) { g.fillStyle = 'rgba(110,80,50,.22)'; g.beginPath(); g.ellipse(cx, cy + s * 0.18, s * 0.16, s * 0.06, 0, 0, TAU); g.fill(); continue; }
-    const r = JARDIN.rebond[i]; JARDIN.rebond[i] = Math.max(0, r - dt * 3);
-    const bal = Math.sin(tJeu * 1.6 + i) * 0.06, k = 1 + ease.out(r) * 0.25;
-    g.save(); g.translate(cx, cy + s * 0.32); g.rotate(bal); g.scale(k, k);
+    const r = JARDIN.rebond[i]; JARDIN.rebond[i] = Math.max(0, r - dt * 2.5);
+    const bal = Math.sin(tJeu * 1.6 + i) * 0.06, k = 1 + ease.out(r) * 0.32;
+    g.save(); g.translate(cx, cy + s * 0.32 - Math.sin(r * Math.PI) * s * 0.12); g.rotate(bal); g.scale(k, k);
     g.strokeStyle = '#4f9a45'; g.lineWidth = s * 0.07; g.lineCap = 'round';
     g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(s * 0.04, -s * 0.25, 0, -s * 0.45); g.stroke();
     g.fillStyle = '#6cbf55'; g.beginPath(); g.ellipse(-s * 0.12, -s * 0.16, s * 0.12, s * 0.045, -0.6, 0, TAU); g.fill();
-    if (r > 0) { const gl = g.createRadialGradient(0, -s * 0.5, 0, 0, -s * 0.5, s * 0.5); gl.addColorStop(0, `rgba(255,250,200,${0.7 * r})`); gl.addColorStop(1, 'rgba(255,250,200,0)'); g.fillStyle = gl; g.beginPath(); g.arc(0, -s * 0.5, s * 0.5, 0, TAU); g.fill(); }
+    if (r > 0) { const gl = g.createRadialGradient(0, -s * 0.5, 0, 0, -s * 0.5, s * 0.6); gl.addColorStop(0, `rgba(255,250,200,${0.85 * r})`); gl.addColorStop(1, 'rgba(255,250,200,0)'); g.fillStyle = gl; g.beginPath(); g.arc(0, -s * 0.5, s * 0.6, 0, TAU); g.fill(); }
     dessinerFleur(g, 0, -s * 0.52, s * 0.3, v - 1, 1, tJeu);
     g.restore();
   }
-  // décorations (au-dessus du jardin)
+  // première étape de la prise en main : une case qui appelle
+  if (JARDIN.tuto === 1) {
+    const i = caseConseillee(), cx = x0 + (i % JCOLS + 0.5) * s, cy = y0 + (((i / JCOLS) | 0) + 0.5) * s, pul = 0.5 + 0.5 * Math.sin(tJeu * 5);
+    g.strokeStyle = `rgba(255,255,255,${0.6 + 0.4 * pul})`; g.lineWidth = 3; g.beginPath(); g.roundRect(cx - s * 0.46, cy - s * 0.46, s * 0.92, s * 0.92, s * 0.2); g.stroke();
+    dessinerMain(g, cx + s * 0.25, cy + s * 0.25 + pul * 6, Math.max(26, s * 0.55));
+  }
+  // décorations (sous le jardin)
   const nb = nbDorees();
   DECOS.forEach(([nom, seuil], k) => {
     const [x, y] = posDeco(k), ouvert = nb >= seuil, on = decoActive(nom, seuil), ds = tailleDeco();
@@ -2088,7 +2235,6 @@ function dessinerJardin(dt) {
     dessinerDeco(g, nom, x, y, ds, tJeu, on && ph >= 0);
     g.globalAlpha = 1;
     g.font = '800 12px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    // étiquette : le nom, ou le nombre de notes dorées qu'il faut
     const lab = ouvert ? TEXTES[langue].decos[nom] : nb + ' / ' + seuil, tw = g.measureText(lab).width + (ouvert ? 14 : 30);
     g.fillStyle = ouvert ? (on ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.6)') : 'rgba(255,255,255,.75)';
     g.beginPath(); g.roundRect(x - tw / 2, y + ds * 0.5, tw, 20, 10); g.fill();
@@ -2096,15 +2242,23 @@ function dessinerJardin(dt) {
     if (!ouvert) dessinerNoteDoree(g, x - tw / 2 + 12, y + ds * 0.5 + 10, 20, 0.3, 0);
   });
   majParticules(dt); dessinerParticules(g);
-  dessinerAmbiance(g, nuit);
-  // Mélo dirige : elle suit la lumière au-dessus du jardin
-  const mx = col >= 0 ? x0 + (ph % JCOLS + 0.5) * s : W / 2 + Math.sin(tJeu * 0.7) * w * 0.3;
-  dessinerMelo(g, mx, y0 - s * 0.55 + Math.sin(tJeu * 3) * 4, 40, tJeu, 'joie', 1);
+  dessinerAmbiance(g, 0);
+  // Mélo dirige : elle suit la barre de lecture au-dessus du jardin
+  const mx = ph >= 0 ? x0 + ((ph + 0.5) % JCOLS) * s : W / 2 + Math.sin(tJeu * 0.7) * w * 0.3;
+  dessinerMelo(g, mx, y0 - s * 0.3 - 34 + Math.sin(tJeu * 3) * 4, 38, tJeu, 'joie', 1);
+}
+function dessinerMain(g, x, y, s) { // un doigt qui montre où toucher
+  g.save(); g.translate(x, y); g.rotate(-0.35);
+  g.fillStyle = '#fff'; g.strokeStyle = '#6b4a8a'; g.lineWidth = 2.5; g.lineJoin = 'round';
+  g.beginPath(); g.roundRect(-s * 0.12, -s * 0.5, s * 0.24, s * 0.6, s * 0.12); g.roundRect(-s * 0.3, -s * 0.05, s * 0.6, s * 0.5, s * 0.18); g.fill();
+  g.beginPath(); g.roundRect(-s * 0.12, -s * 0.5, s * 0.24, s * 0.6, s * 0.12); g.stroke();
+  g.beginPath(); g.moveTo(-s * 0.12, -s * 0.03); g.lineTo(-s * 0.3, -s * 0.03); g.quadraticCurveTo(-s * 0.3, s * 0.45, 0, s * 0.45); g.quadraticCurveTo(s * 0.3, s * 0.45, s * 0.3, -s * 0.03); g.lineTo(s * 0.12, -s * 0.03); g.stroke();
+  g.restore();
 }
 
 // ----- toucher le jardin -----
 let jardinAppui = null;
-cv.addEventListener('pointerdown', ev => { if (ecranActuel === 'jardin' && !popOuverte) jardinAppui = { x: ev.clientX, y: ev.clientY }; });
+cv.addEventListener('pointerdown', ev => { if (ecranActuel === 'jardin' && !popOuverte && JARDIN.onglet === 'compo') jardinAppui = { x: ev.clientX, y: ev.clientY }; });
 cv.addEventListener('pointerup', ev => {
   if (ecranActuel !== 'jardin' || popOuverte || !jardinAppui) return;
   const a = jardinAppui; jardinAppui = null;
@@ -2115,10 +2269,10 @@ cv.addEventListener('pointerup', ev => {
   const ds = tailleDeco();
   for (let k = 0; k < DECOS.length; k++) {
     const [dx, dy] = posDeco(k), [nom, seuil] = DECOS[k];
-    if (Math.abs(x - dx) < W / 8 && Math.abs(y - dy) < ds * 0.7) {
+    if (Math.abs(x - dx) < JCOLS * s / 8 && Math.abs(y - dy) < ds * 0.7) {
       if (nbDorees() < seuil) { son('refus'); messageJardin(T('decoVerrou', seuil) + ' · ' + T('decoTxt'), 3.5); return; }
       JARDIN.d[nom] = !decoActive(nom, seuil); sauverJardin(); son('clic'); vibrer();
-      const [px, py] = posDeco(k); eclat(px, py, '#fff6b0', 12, 0.9);
+      eclat(dx, dy, '#fff6b0', 12, 0.9);
       if (!SAUVE.lire('decoVu', false)) { SAUVE.ecrire('decoVu', true); messageJardin(T('decoTxt'), 4); }
       return;
     }
@@ -2130,32 +2284,137 @@ cv.addEventListener('pointerup', ev => {
   if (JARDIN.g[i]) { // reprendre la fleur
     JARDIN.g[i] = 0; sauverJardin(); son('retire'); vibrer();
     for (let k = 0; k < 6; k++) particule('petale', px, py, { vx: (Math.random() - 0.5) * 90, vy: -30 - Math.random() * 50, vie: 0.9 });
-    majPlateauJardin(); return;
+    return;
   }
-  const { reste, total } = recolte();
-  if (!total.some(v => v)) { son('refus'); messageJardin(T('jardinVide'), 3); return; }
-  if (JARDIN.sel < 0 || reste[JARDIN.sel] <= 0) { son('refus'); messageJardin(T('jardinPlein'), 3); return; }
+  if (JARDIN.sel < 0) return;
   JARDIN.g[i] = JARDIN.sel + 1; sauverJardin(); vibrer();
   JARDIN.rebond[i] = 1;
-  son('pose', JLIGNES - 1 - cy);
+  SON.noteFleur(JARDIN.sel, cy, JLIGNES);
   eclat(px, py, '#e8ffd0', 9, 0.8);
-  majPlateauJardin();
+  if (!JARDIN.joue) lecture(true);
+  etapeTuto(2);
 });
-$('b-retour-jardin').onclick = () => { son('clic'); fermerJardin(); };
-$('b-herbier-jardin').onclick = () => { son('clic'); ouvrirHerbier(); };
 
-// ----- herbier -----
-function ouvrirHerbier() {
-  const noms = TEXTES[langue].especes, connues = herbier.filter(v => v > 0).length;
-  ouvrirPop(`<div class="ruban lav">${T('herbier')} · ${connues}/${ESPECES.length}</div>
-    <p class="txt petit-txt">${T('herbierTxt')}</p>
-    <div class="herbier">${ESPECES.map((_, k) => herbier[k] ? `<button class="fiche" data-k="${k}"><img src="${icone('fleur' + k, 64)}" alt=""><b>${noms[k]}</b><small>${T('eclose', herbier[k])}</small></button>` : `<div class="fiche inconnue"><img src="${icone('fleur' + k, 64)}" alt=""><b>?</b><small>${T('inconnue')}</small></div>`).join('')}</div>
-    <div class="boutons" style="margin-top:14px"><button class="btn vert petit" id="p-ok">${T('fermer')}</button></div>`, 'herbier');
-  document.querySelectorAll('.fiche[data-k]').forEach(b => b.onclick = () => {
+// ----- commandes -----
+$('b-retour-jardin').onclick = () => { son('clic'); fermerJardin(); };
+$('o-compo').onclick = () => { son('clic'); JARDIN.onglet = 'compo'; majOnglets(); lecture(!jardinVide()); };
+$('o-herbier').onclick = () => { son('clic'); JARDIN.onglet = 'herbier'; lecture(false); majOnglets(); };
+$('b-aide-jardin').onclick = () => { SON.init(); son('clic'); if (JARDIN.onglet !== 'compo') { JARDIN.onglet = 'compo'; majOnglets(); } demarrerTuto(); };
+$('b-lecture-cmd').onclick = () => { SON.init(); son('clic'); if (jardinVide() && !JARDIN.joue) { messageJardin(T('videRien'), 2.5); return; } lecture(!JARDIN.joue); };
+$('b-effacer').onclick = () => {
+  SON.init(); son('clic');
+  if (jardinVide()) return;
+  ouvrirPop(`<div class="ruban">${T('effacer')}</div><p class="txt">${T('effacerTxt')}</p>
+    <div class="boutons"><button class="btn vert petit" id="p-oui">${T('effacer')}</button><button class="btn lav petit" id="p-non">${T('annuler')}</button></div>`, 'effacer');
+  $('p-oui').onclick = () => { son('retire'); fermerPop(); JARDIN.g.fill(0); sauverJardin(); lecture(false); for (let k = 0; k < 24; k++) particule('petale', JARDIN.x + Math.random() * JCOLS * JARDIN.s, JARDIN.y + Math.random() * JLIGNES * JARDIN.s, { vx: (Math.random() - 0.5) * 90, vy: -40 - Math.random() * 60, vie: 1.1 }); };
+  $('p-non').onclick = () => { son('clic'); fermerPop(); };
+};
+$('b-enregistrer').onclick = () => {
+  SON.init(); son('clic');
+  if (jardinVide()) { son('refus'); messageJardin(T('videRien'), 2.5); return; }
+  if (melodies.length >= MAX_MELODIES) { son('refus'); messageJardin(T('pleinMelodies', MAX_MELODIES), 3.5); ouvrirMelodies(); return; }
+  let n = melodies.length + 1; while (melodies.some(m => m.nom === T('defautNom', n))) n++;
+  ouvrirPop(`<div class="ruban">${T('enregistrer')}</div><p class="txt">${T('nomMelodie')}</p>
+    <input id="p-nom" class="champ" maxlength="24" value="${T('defautNom', n)}">
+    <div class="boutons" style="margin-top:14px"><button class="btn vert petit" id="p-oui">${T('enregistrer')}</button><button class="btn lav petit" id="p-non">${T('annuler')}</button></div>`, 'enregistrer');
+  const champ = $('p-nom'); champ.focus(); champ.select();
+  const valider = () => {
+    const nom = (champ.value.trim() || T('defautNom', n)).slice(0, 24);
+    melodies.unshift({ nom, g: JARDIN.g.slice(), t: Date.now() }); sauverMelodies();
+    fermerPop(); son('victoire'); vibrer('fort'); messageJardin('💾 ' + T('enregistree'), 2.5);
+    for (let k = 0; k < 30; k++) particule('note', JARDIN.x + Math.random() * JCOLS * JARDIN.s, JARDIN.y + Math.random() * JLIGNES * JARDIN.s, { vy: -60, vie: 1.6, col: ['#ffffff', '#ffe27a', '#ffc0d8'][k % 3] });
+    if (JARDIN.tuto) finTuto();
+  };
+  $('p-oui').onclick = valider; champ.onkeydown = e => { if (e.key === 'Enter') valider(); };
+  $('p-non').onclick = () => { son('clic'); fermerPop(); };
+};
+$('b-melodies').onclick = () => { SON.init(); son('clic'); ouvrirMelodies(); };
+
+// ----- modèles pour démarrer : [colonne, ligne] de la mélodie, puis de la basse -----
+const MODELES = [
+  { m: [[0, 3], [1, 2], [2, 1], [3, 3], [4, 3], [5, 2], [6, 1], [7, 3]], b: [[0, 5], [4, 5]] }, // comptine
+  { m: [[0, 2], [2, 3], [3, 2], [4, 1], [6, 2], [7, 3]], b: [[0, 5], [2, 4], [4, 5], [6, 4]] }, // berceuse
+  { m: [[0, 0], [1, 2], [2, 1], [3, 3], [4, 0], [5, 2], [6, 4], [7, 1]], b: [[0, 5], [3, 4], [6, 5]] }, // pluie d'étoiles
+];
+function grilleModele(k) {
+  const c = especesConnues(), dispo = c.map((v, i) => v ? i : -1).filter(i => i >= 0);
+  const mel = JARDIN.sel >= 0 && c[JARDIN.sel] ? JARDIN.sel : dispo[0], b0 = dispo.find(i => i % 4 !== mel % 4), basse = b0 === undefined ? mel : b0;
+  const g = new Array(JCOLS * JLIGNES).fill(0);
+  for (const [x, y] of MODELES[k].m) g[y * JCOLS + x] = mel + 1;
+  for (const [x, y] of MODELES[k].b) g[y * JCOLS + x] = basse + 1;
+  return g;
+}
+function chargerGrille(g, nom) {
+  for (let i = 0; i < JARDIN.g.length; i++) JARDIN.g[i] = g[i] | 0;
+  sauverJardin(); fermerPop();
+  JARDIN.onglet = 'compo'; majOnglets();
+  lecture(true); son('eclot', 5); vibrer();
+  messageJardin(`🎵 <b>${echapper(nom)}</b> · ${T('chargee')}`, 3);
+  for (let i = 0; i < JARDIN.g.length; i++) if (JARDIN.g[i]) JARDIN.rebond[i] = 1;
+  if (JARDIN.tuto) finTuto();
+}
+const echapper = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+// ----- partage : la grille et le nom tiennent dans un petit code JS-… -----
+function codeMelodie(m) {
+  const octets = [];
+  for (let i = 0; i < JCOLS * JLIGNES; i += 2) octets.push(((m.g[i] | 0) << 4) | (m.g[i + 1] | 0));
+  for (const b of new TextEncoder().encode(m.nom.slice(0, 24))) octets.push(b);
+  return 'JS-' + btoa(String.fromCharCode(...octets)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function lireCode(txt) {
+  const r = /JS-([A-Za-z0-9_-]{32,})/.exec(txt || ''); if (!r) return null;
+  try {
+    const bin = atob(r[1].replace(/-/g, '+').replace(/_/g, '/')), o = [...bin].map(c => c.charCodeAt(0));
+    if (o.length < 24) return null;
+    const g = [];
+    for (let k = 0; k < 24; k++) { g.push(o[k] >> 4, o[k] & 15); }
+    if (g.some(v => v > ESPECES.length)) return null;
+    const nom = new TextDecoder().decode(new Uint8Array(o.slice(24))).slice(0, 24) || T('defautNom', 1);
+    return { nom, g };
+  } catch (e) { return null; }
+}
+async function partagerMelodie(m) {
+  const code = codeMelodie(m), texte = T('partageTxt', m.nom, code);
+  try { if (navigator.share) { await navigator.share({ text: texte }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(texte); messageJardin('📋 ' + T('codeCopie'), 3); return; } catch (e) { }
+  const champ = $('p-code'); if (champ) { champ.value = code; champ.select(); messageJardin(T('codeAffiche'), 3.5); }
+}
+
+function ouvrirMelodies() {
+  const noms = T('modeles');
+  ouvrirPop(`<div class="ruban lav">${T('melodies')}</div>
+    <div class="liste-melodies">
+      <h3>${T('pourCommencer')}</h3>
+      <div class="modeles">${noms.map((n, k) => `<button class="modele" data-k="${k}"><span>${['🎶', '🌙', '✨'][k]}</span>${n}</button>`).join('')}</div>
+      <h3>${T('mesMelodies')} · ${melodies.length}/${MAX_MELODIES}</h3>
+      ${melodies.length ? melodies.map((m, k) => `<div class="ligne-melodie"><button class="ouvrir" data-k="${k}"><img src="${icone('fleur' + ((m.g.find(v => v) || 1) - 1), 40)}" alt="">${echapper(m.nom)}</button><button class="mini" data-p="${k}" aria-label="${T('partager')}"><svg viewBox="0 0 24 24" fill="none" stroke="#7f63c0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 13v6h14v-6"/></svg></button><button class="mini" data-s="${k}" aria-label="${T('supprimer')}"><svg viewBox="0 0 24 24" fill="none" stroke="#c46a8a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></svg></button></div>`).join('') : `<p class="petit-txt">${T('aucuneMelodie')}</p>`}
+      <h3>${T('collerCode')}</h3>
+      <div class="ligne-code"><input id="p-code" class="champ" placeholder="JS-…" autocomplete="off"><button class="btn vert petit" id="p-lire">${T('lecture')}</button></div>
+    </div>
+    <div class="boutons" style="margin-top:12px"><button class="btn lav petit" id="p-ok">${T('fermer')}</button></div>`, 'melodies');
+  document.querySelectorAll('.modele').forEach(b => b.onclick = () => { const k = +b.dataset.k; chargerGrille(grilleModele(k), noms[k]); });
+  document.querySelectorAll('.ouvrir').forEach(b => b.onclick = () => { const m = melodies[+b.dataset.k]; chargerGrille(m.g, m.nom); });
+  document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { son('clic'); partagerMelodie(melodies[+b.dataset.p]); });
+  document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { son('retire'); melodies.splice(+b.dataset.s, 1); sauverMelodies(); ouvrirMelodies(); });
+  $('p-lire').onclick = () => {
+    if (TESTEURS.length && $('p-code').value.trim().toUpperCase() === 'MERCI') { chargerGrille(grilleMerci(), T('merciMelodie')); return; }
+    const m = lireCode($('p-code').value);
+    if (!m) { son('refus'); $('p-code').classList.add('erreur'); messageJardin(T('codeInvalide'), 3); return; }
+    chargerGrille(m.g, m.nom);
+  };
+  $('p-ok').onclick = () => { son('clic'); fermerPop(); };
+}
+
+// ----- herbier (onglet du jardin) -----
+function remplirHerbier() {
+  const noms = TEXTES[langue].especes, c = especesConnues(), connues = c.filter(v => v).length, inst = T('instruments');
+  $('vue-herbier').innerHTML = `<p class="txt petit-txt">${T('herbierTxt')} · <b>${connues}/${ESPECES.length}</b></p>
+    <div class="herbier">${ESPECES.map((_, k) => c[k] ? `<button class="fiche" data-k="${k}"><img src="${icone('fleur' + k, 64)}" alt=""><b>${noms[k]}</b><small>${inst[k % 4]}${herbier[k] ? ' · ' + T('eclose', herbier[k]) : ''}</small></button>` : `<div class="fiche inconnue"><img src="${icone('fleur' + k, 64)}" alt=""><b>?</b><small>${T('inconnue')}</small></div>`).join('')}</div>`;
+  document.querySelectorAll('#vue-herbier .fiche[data-k]').forEach(b => b.onclick = () => {
     SON.init(); const k = +b.dataset.k, d = SON.chanson(k) || 2;
     b.classList.remove('joue'); void b.offsetWidth; b.classList.add('joue'); b.style.animationDuration = d + 's';
   });
-  $('p-ok').onclick = () => { son('clic'); fermerPop(); };
 }
 
 'use strict';
@@ -2313,6 +2572,7 @@ function dessinerIntro(dt) {
 'use strict';
 // ===== Écrans : titre, carte-jardin, fenêtres, boucle principale =====
 let ecranActuel = 'titre', popOuverte = null;
+const POPS_LIBRES = ['reglages', 'melodies', 'enregistrer', 'effacer', 'merci']; // fenêtres qu'on ferme en touchant à côté ou avec le bouton retour
 
 function montrer(nom) {
   ecranActuel = nom;
@@ -2328,9 +2588,12 @@ function fondu(apres) {
 // ----- titre -----
 function preparerTitre() {
   const couleurs = ['#ff7fae', '#ffb547', '#7cc96a', '#5fb6f5', '#a98af5', '#ff7fae', '#ffb547'];
-  $('logo').innerHTML = ['Jardin', 'Sonore'].map((mot, j) => [...mot].map((l, i) => `<span style="color:${couleurs[(i + j * 3) % couleurs.length]};animation-delay:${(i + j * 6) * 0.11}s">${l}</span>`).join('')).join('<br>');
+  $('logo').innerHTML = ['Jardin', 'Sonore'].map((mot, j) => [...mot].map((l, i) => `<span style="color:${couleurs[(i + j * 3) % couleurs.length]};animation-delay:${(i + j * 6) * 0.11}s"><b class="lettre">${l}<span class="reflet" aria-hidden="true">${l}</span></b></span>`).join('')).join('<br>');
   $('sous-titre').textContent = T('sousTitre', NB_NIVEAUX);
-  $('b-jouer').textContent = T('jouer');
+  $('lab-jouer').textContent = T('jouer');
+  const n = nbFaits();
+  $('progres-titre').classList.toggle('cache', !n);
+  if (n) { $('ic-fleur-t').src = icone('fleur0', 40); $('ic-doree-t').src = icone('doree', 40); $('pt-fleurs').textContent = n + ' / ' + NB_NIVEAUX; $('pt-dorees').textContent = nbDorees(); }
 }
 $('b-jouer').onclick = () => {
   SON.init(); son('clic');
@@ -2339,50 +2602,190 @@ $('b-jouer').onclick = () => {
 };
 $('b-reglages-titre').onclick = () => { SON.init(); son('clic'); ouvrirReglages(); };
 
-const fleursTitre = Array.from({ length: 16 }, (_, k) => ({ x: (k + 0.5) / 16 + (Math.sin(k * 7.3) * 0.02), h: 0.1 + ((k * 37) % 10) / 70, esp: k % ESPECES.length, r: 16 + (k * 13) % 14 }));
+// décor fixe de l'accueil (mis en cache) : ciel doré, collines en plans successifs, prairie et chemin de pierres
+let cacheTitre = null;
+function fondTitre() {
+  const k = W + 'x' + H + ':' + DPR;
+  if (cacheTitre && cacheTitre.k === k) return cacheTitre.c;
+  const c = toile(W * DPR, H * DPR), g = c.getContext('2d'); g.scale(DPR, DPR);
+  const ciel = g.createLinearGradient(0, 0, 0, H * 0.62);
+  ciel.addColorStop(0, '#78c4f5'); ciel.addColorStop(0.45, '#bfe6ff'); ciel.addColorStop(0.8, '#ffe9c7'); ciel.addColorStop(1, '#ffd9a8');
+  g.fillStyle = ciel; g.fillRect(0, 0, W, H);
+  // halo du soleil derrière le titre
+  const sx = W * 0.5, sy = H * 0.2, sr = Math.max(W, H) * 0.55;
+  const hs = g.createRadialGradient(sx, sy, 0, sx, sy, sr);
+  hs.addColorStop(0, 'rgba(255,252,225,.95)'); hs.addColorStop(0.18, 'rgba(255,240,190,.55)'); hs.addColorStop(1, 'rgba(255,230,170,0)');
+  g.fillStyle = hs; g.fillRect(0, 0, W, H);
+  // collines : plus elles sont loin, plus elles se fondent dans le ciel
+  const r = rnd(21);
+  const plans = [[0.43, '#b7dcb8', '#a4d0a6', 0.022], [0.5, '#9bd38d', '#86c47a', 0.03], [0.57, '#7cc566', '#69b555', 0.026]];
+  plans.forEach(([b, coul, ombre, amp], p) => {
+    const crete = x => H * b + Math.sin(x / W * 4.2 + p * 1.7) * H * amp + Math.sin(x / W * 11 + p) * H * amp * 0.3;
+    // bosquets ronds posés sur la crête
+    for (let i = 0; i < 5 + p * 2; i++) {
+      const x = r() * W, y = crete(x), rr = H * (0.016 + p * 0.007) * (0.8 + r() * 0.6);
+      g.fillStyle = ombre; g.beginPath(); g.arc(x - rr * 0.6, y - rr * 0.35, rr * 0.8, 0, TAU); g.arc(x + rr * 0.5, y - rr * 0.3, rr * 0.75, 0, TAU); g.arc(x, y - rr * 0.8, rr, 0, TAU); g.fill();
+    }
+    const gc = g.createLinearGradient(0, H * b - H * amp, 0, H);
+    gc.addColorStop(0, coul); gc.addColorStop(1, ombre);
+    g.fillStyle = gc; g.beginPath(); g.moveTo(0, H);
+    for (let q = 0; q <= 40; q++) { const x = q / 40 * W; g.lineTo(x, crete(x)); }
+    g.lineTo(W, H); g.fill();
+    // brume entre les plans
+    const br = g.createLinearGradient(0, H * b - H * 0.02, 0, H * b + H * 0.06);
+    br.addColorStop(0, 'rgba(255,245,225,0)'); br.addColorStop(1, `rgba(255,245,225,${0.22 - p * 0.07})`);
+    g.fillStyle = br; g.fillRect(0, H * b - H * 0.02, W, H * 0.08);
+  });
+  // prairie du premier plan
+  const pr = g.createLinearGradient(0, H * 0.64, 0, H);
+  pr.addColorStop(0, '#8ed877'); pr.addColorStop(1, '#5aae4f');
+  g.fillStyle = pr; g.beginPath(); g.moveTo(0, H);
+  for (let q = 0; q <= 30; q++) { const x = q / 30 * W; g.lineTo(x, H * 0.645 + Math.sin(x / W * 3 + 1) * H * 0.012); }
+  g.lineTo(W, H); g.fill();
+  // chemin de pierres qui monte vers la cloche, en perspective
+  for (let i = 0; i < 9; i++) {
+    const u = i / 8, x = W * 0.5 + Math.sin(u * 3.2 + 0.4) * W * 0.12 * (1 - u * 0.7), y = lerp(H * 1.02, H * 0.665, Math.pow(u, 0.8)), e = lerp(1, 0.35, u);
+    g.fillStyle = 'rgba(40,90,40,.18)'; g.beginPath(); g.ellipse(x, y + 4 * e, 26 * e, 9 * e, 0, 0, TAU); g.fill();
+    g.fillStyle = '#fff6e2'; g.beginPath(); g.ellipse(x, y, 25 * e, 9 * e, (i % 2 ? 0.12 : -0.1), 0, TAU); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(x - 5 * e, y - 2.5 * e, 11 * e, 3 * e, -0.1, 0, TAU); g.fill();
+  }
+  // fleurettes et touffes d'herbe
+  for (let i = 0; i < 70; i++) {
+    const y = H * (0.66 + r() * 0.34), x = r() * W, e = 0.5 + (y / H - 0.66) * 2.5;
+    if (r() < 0.5) {
+      g.strokeStyle = 'rgba(60,130,55,.5)'; g.lineWidth = 1.6; g.lineCap = 'round'; g.beginPath();
+      for (let b = -1; b <= 1; b++) { g.moveTo(x + b * 3 * e, y); g.quadraticCurveTo(x + b * 4 * e, y - 6 * e, x + b * 6 * e, y - 10 * e); }
+      g.stroke();
+    } else {
+      g.fillStyle = ['#ffffff', '#ffe27a', '#ffb3cf', '#c9b8ff', '#9fdcff'][i % 5];
+      for (let k2 = 0; k2 < 5; k2++) { const a = k2 / 5 * TAU; g.beginPath(); g.arc(x + Math.cos(a) * 2.2 * e, y + Math.sin(a) * 2.2 * e, 1.7 * e, 0, TAU); g.fill(); }
+      g.fillStyle = '#ffcf3a'; g.beginPath(); g.arc(x, y, 1.3 * e, 0, TAU); g.fill();
+    }
+  }
+  cacheTitre = { k, c };
+  return c;
+}
+const nuagesTitre = Array.from({ length: 5 }, (_, k) => ({ x: (k * 0.29) % 1, y: 0.05 + ((k * 37) % 10) / 45, l: 0.2 + ((k * 53) % 10) / 55, v: 0.006 + (k % 3) * 0.004 }));
+const bouquets = [ // fleurs du premier plan, dans les coins : [côté, x, hauteur, rayon, espèce]
+  [0, 0.04, 0.13, 30, 0], [0, 0.17, 0.08, 24, 4], [0, 0.07, 0.03, 26, 2], [0, 0.26, 0.02, 20, 1], [0, 0.13, 0.17, 18, 5],
+  [1, 0.95, 0.12, 30, 6], [1, 0.82, 0.07, 24, 1], [1, 0.92, 0.02, 26, 3], [1, 0.73, 0.02, 19, 8], [1, 0.86, 0.17, 18, 0],
+];
+function dessinerBuisson(g, x, y, s, dir) { // massif feuillu ancré dans un coin : boules de feuillage ombrées, de l'arrière vers l'avant
+  const boules = [[0.95, -0.55, 0.42], [0.55, -0.78, 0.4], [0.15, -0.88, 0.38], [1.2, -0.2, 0.36], [0.75, -0.35, 0.44], [0.3, -0.5, 0.46], [0.05, -0.2, 0.5]];
+  for (const [bx, by, br] of boules) {
+    const cx = x + bx * s * dir, cy = y + by * s, r = br * s;
+    const gr = g.createRadialGradient(cx - r * 0.3 * dir, cy - r * 0.45, r * 0.1, cx, cy, r);
+    gr.addColorStop(0, '#7ccf68'); gr.addColorStop(0.55, '#46a24c'); gr.addColorStop(1, '#2c7a39');
+    g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+    // quelques feuilles qui dépassent
+    g.fillStyle = '#5cb956';
+    for (let k = 0; k < 3; k++) { const a = -Math.PI * (0.25 + k * 0.25), lx = cx + Math.cos(a) * r * 0.92, ly = cy + Math.sin(a) * r * 0.92; g.beginPath(); g.ellipse(lx, ly, r * 0.16, r * 0.07, a + Math.PI / 2, 0, TAU); g.fill(); }
+  }
+}
 function dessinerTitre(dt) {
   const g = ctx; g.setTransform(DPR, 0, 0, DPR, 0, 0);
-  g.drawImage(fondMonde(0), 0, 0, W, H);
-  majAmbiance(dt);
-  // tiges et fleurs au premier plan, qui dansent
-  for (const f of fleursTitre) {
-    const bx = f.x * W, by = H + 10, top = H * (0.8 - f.h), bal = Math.sin(tJeu * 1.2 + f.x * 9) * 10;
-    g.strokeStyle = '#4f9a45'; g.lineWidth = 4; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(bx, by); g.quadraticCurveTo(bx, (by + top) / 2, bx + bal, top); g.stroke();
-    g.fillStyle = '#6cbf55'; g.beginPath(); g.ellipse(bx + 8, (by + top) / 2 + 20, 12, 5, -0.5, 0, TAU); g.fill();
-    dessinerFleur(g, bx + bal, top, f.r, f.esp, 1, tJeu);
+  g.drawImage(fondTitre(), 0, 0, W, H);
+  // rayons du soleil qui tournent lentement derrière le titre
+  if (!effetsReduits) {
+    g.save(); g.translate(W * 0.5, H * 0.2); g.rotate(tJeu * 0.04);
+    const L = Math.max(W, H) * 0.9;
+    const gr = g.createRadialGradient(0, 0, 0, 0, 0, L); gr.addColorStop(0, 'rgba(255,253,235,.38)'); gr.addColorStop(1, 'rgba(255,253,235,0)');
+    g.fillStyle = gr; g.beginPath();
+    for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; g.moveTo(0, 0); g.arc(0, 0, L, a, a + TAU / 34); }
+    g.fill(); g.restore();
   }
-  // Mélo vole en huit
-  const mx = W / 2 + Math.sin(tJeu * 0.7) * W * 0.28, my = H * 0.6 + Math.sin(tJeu * 1.4) * 30;
-  dessinerMelo(g, mx, my, 70, tJeu, 'joie', Math.cos(tJeu * 0.7) > 0 ? -1 : 1);
-  if (Math.random() < dt * 3) particule('note', mx, my - 30, { vy: -30, vie: 2.2, col: ['#ffffff', '#ffe27a', '#ffc0d8'][Math.floor(Math.random() * 3)], taille: 1 });
+  // nuages qui dérivent
+  for (const n of nuagesTitre) {
+    const cw = W * n.l, cx = ((n.x + tJeu * n.v) % 1.4) * (W + cw * 2) - cw, cy = H * n.y;
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath();
+    g.ellipse(cx, cy, cw * 0.5, cw * 0.13, 0, 0, TAU); g.ellipse(cx - cw * 0.16, cy - cw * 0.07, cw * 0.2, cw * 0.14, 0, 0, TAU); g.ellipse(cx + cw * 0.12, cy - cw * 0.1, cw * 0.25, cw * 0.17, 0, 0, TAU);
+    g.fill();
+  }
+  // la cloche sur sa butte, et la mélodie qui s'en échappe en deux rubans
+  const s = Math.min(W * 0.2, H * 0.1, 86), cx = W * 0.5, cy = H * 0.63;
+  const ruban = (cote, u) => { const x = cx + cote * u * W * 0.62; return [x, cy - s * 0.15 - Math.sin(u * 7 - tJeu * 2.4) * s * 0.28 * Math.min(1, u * 4) - u * H * 0.05]; };
+  for (const cote of [-1, 1]) {
+    for (const [lw, al, col] of [[s * 0.3, 0.12, '#fff3a0'], [s * 0.13, 0.3, '#ffe27a'], [s * 0.045, 0.95, '#fffef0']]) {
+      g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.beginPath();
+      for (let q = 0; q <= 40; q++) { const u = q / 40, [x, y] = ruban(cote, u); g.globalAlpha = al; if (q) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+    // notes qui voyagent le long du ruban
+    for (let k = 0; k < 3; k++) {
+      const u = ((tJeu * 0.16 + k / 3 + (cote > 0 ? 0.17 : 0)) % 1), [x, y] = ruban(cote, u);
+      g.globalAlpha = Math.min(1, u * 6, (1 - u) * 3);
+      dessinerNote(g, x, y - s * 0.05, s * 0.3, ['#ffffff', '#fff1a0', '#ffd0e4'][k], k + (cote > 0 ? 1 : 0));
+    }
+    g.globalAlpha = 1;
+  }
+  g.fillStyle = 'rgba(70,140,60,.35)'; g.beginPath(); g.ellipse(cx, cy + s * 0.3, s * 0.9, s * 0.2, 0, 0, TAU); g.fill();
+  dessinerCloche(g, cx, cy, s, 3, 0, tJeu, Math.sin(tJeu * 2.4) > 0.9);
+  // Mélo dirige l'orchestre au-dessus de la cloche
+  const mx = cx + Math.sin(tJeu * 0.8) * s * 1.5, my = cy - s * 1.25 + Math.sin(tJeu * 1.6) * s * 0.15;
+  dessinerMelo(g, mx, my, s * 0.95, tJeu, 'joie', Math.cos(tJeu * 0.8) > 0 ? 1 : -1);
+  // massifs fleuris dans les coins du premier plan
+  dessinerBuisson(g, -W * 0.06, H * 1.02, Math.min(W * 0.3, 150), 1);
+  dessinerBuisson(g, W * 1.06, H * 1.02, Math.min(W * 0.3, 150), -1);
+  for (const [cote, fx, fh, fr, esp] of bouquets) {
+    const bx = fx * W, by = H * (0.95 - fh * 0.9), bal = Math.sin(tJeu * 1.1 + fx * 9) * 4;
+    dessinerFleur(g, bx + bal, by, Math.min(fr, W * 0.075), esp, 1, tJeu);
+  }
+  // pétales qui tombent et poussière dorée
+  if (Math.random() < dt * (effetsReduits ? 0.8 : 2.2)) particule('petale', Math.random() * W, -10, { vx: (Math.random() - 0.5) * 30, vy: 30 + Math.random() * 30, vie: 9 });
   majParticules(dt); dessinerParticules(g);
-  dessinerAmbiance(g, 0);
+  majAmbiance(dt); dessinerAmbiance(g, 0);
+  // vignette douce
+  const v = g.createRadialGradient(W / 2, H * 0.45, Math.min(W, H) * 0.45, W / 2, H * 0.45, Math.max(W, H) * 0.85);
+  v.addColorStop(0, 'rgba(40,60,100,0)'); v.addColorStop(1, 'rgba(40,60,100,.22)');
+  g.fillStyle = v; g.fillRect(0, 0, W, H);
 }
 
 // ----- carte : un grand jardin qui fleurit niveau après niveau -----
 const HN = 96, ENTETE = 170, HAUT_MONDE = PAR_MONDE * HN + ENTETE;
 const carte = { y: 0, v: 0, drag: null, decor: [] };
-function totalCarte() { return MONDES.length * HAUT_MONDE + 120; }
+const BAS_CARTE = 130; // marge sous la Prairie : son panneau reste au-dessus du bouton Mon jardin
+function totalCarte() { return MONDES.length * HAUT_MONDE + 120 + BAS_CARTE; }
+const finMondes = () => totalCarte() - BAS_CARTE;
 function posNoeud(i) {
   const m = (i / PAR_MONDE) | 0, j = i % PAR_MONDE;
-  const yMonde = totalCarte() - (m + 1) * HAUT_MONDE; // monde 1 en bas
-  const y = yMonde + HAUT_MONDE - ENTETE + 40 - j * HN - 30;
+  const yMonde = finMondes() - (m + 1) * HAUT_MONDE; // monde 1 en bas
+  const y = yMonde + HAUT_MONDE - ENTETE + 40 - j * HN - 50;
   const x = W / 2 + Math.sin(i * 0.68) * Math.min(W * 0.28, 140);
   return [x, y];
 }
+const DECOR_SOL = { touffe: 1, fleurette: 1, mare: 1 }; // posés à plat : dessinés avant tout ce qui se dresse
+const RAYON_DECOR = { mare: 1.05, arbre: 0.6, buisson: 0.5, pierre: 0.45, fleurs: 0.5, roseaux: 0.4, champi: 0.5, lanterne: 0.35 };
 function preparerDecorCarte() {
   carte.decor = [];
-  const r = rnd(77);
+  const r = rnd(77), L = Math.min(W, 520);
   for (let m = 0; m < MONDES.length; m++) {
-    const y0 = totalCarte() - (m + 1) * HAUT_MONDE;
+    const y0 = finMondes() - (m + 1) * HAUT_MONDE, h = HAUT_MONDE + (m ? 0 : BAS_CARTE), poses = [];
+    const noeuds = Array.from({ length: PAR_MONDE }, (_, j) => posNoeud(m * PAR_MONDE + j));
+    surprisesCarte(m, poses);
+    const types = [['arbre', 'buisson', 'fleurs', 'pierre'], ['arbre', 'mare', 'fleurs', 'roseaux'], ['pierre', 'pierre', 'arbre', 'fleurs'], ['champi', 'champi', 'arbre', 'fleurs'], ['mare', 'roseaux', 'lanterne', 'fleurs'], ['lanterne', 'arbre', 'fleurs', 'champi']][m];
     for (let k = 0; k < 90; k++) {
-      const gauche = r() < 0.5, x = gauche ? r() * 0.22 : 0.78 + r() * 0.22;
-      const types = [['arbre', 'buisson', 'fleurs', 'pierre'], ['arbre', 'mare', 'fleurs', 'roseaux'], ['pierre', 'pierre', 'arbre', 'fleurs'], ['champi', 'champi', 'arbre', 'fleurs'], ['mare', 'roseaux', 'lanterne', 'fleurs'], ['lanterne', 'arbre', 'fleurs', 'champi']][m];
-      carte.decor.push({ m, x, y: y0 + 60 + r() * (HAUT_MONDE - 120), t: types[Math.floor(r() * 4)], s: 0.7 + r() * 0.6, k: Math.floor(r() * 9) });
+      const t = types[Math.floor(r() * 4)], sc = 0.7 + r() * 0.6, rr = 34 * sc * RAYON_DECOR[t];
+      // on cherche une place libre : deux décors ne se chevauchent plus (une mare ne recouvre plus un arbre)
+      for (let essai = 0; essai < 10; essai++) {
+        const gauche = r() < 0.5, x = gauche ? 0.02 + r() * 0.18 : 0.8 + r() * 0.18, y = y0 + 60 + r() * (h - 120);
+        if (poses.some(p => Math.hypot((p.x - x) * L, (p.y - y) * (t === 'mare' || p.t === 'mare' ? 1.6 : 1)) < p.rr + rr + 6)) continue;
+        if (noeuds.some(([nx, ny]) => Math.hypot(x * W - nx, (y - ny) * 1.3) < rr + 44)) continue; // le chemin et ses fleurs restent dégagés
+        const d = { m, x, y, t, s: sc, k: Math.floor(r() * 9), rr };
+        poses.push(d); carte.decor.push(d);
+        // des roseaux et un nénuphar autour des mares, pour qu'elles appartiennent au paysage
+        if (t === 'mare' && r() < 0.7) carte.decor.push({ m, x: x + (r() < 0.5 ? -1 : 1) * 30 * sc / L, y: y - 6 * sc, t: 'roseaux', s: sc * 0.7, k: d.k, bord: true });
+        break;
+      }
     }
-    for (let k = 0; k < 160; k++) carte.decor.push({ m, x: r(), y: y0 + r() * HAUT_MONDE, t: r() < 0.7 ? 'touffe' : 'fleurette', s: 0.6 + r() * 0.8, k: Math.floor(r() * 9) });
+    for (let k = 0; k < 160; k++) {
+      const x = r(), y = y0 + r() * h, t = r() < 0.7 ? 'touffe' : 'fleurette';
+      if (poses.some(p => p.t === 'mare' && Math.hypot((p.x - x) * L, (p.y - y) * 1.8) < p.rr + 6)) continue; // pas d'herbe au milieu de l'eau
+      carte.decor.push({ m, x, y, t, s: 0.6 + r() * 0.8, k: Math.floor(r() * 9) });
+    }
   }
+  // ordre de dessin : le sol d'abord, puis les décors du fond vers l'avant
+  carte.decor.sort((a, b) => (DECOR_SOL[b.t] || 0) - (DECOR_SOL[a.t] || 0) || a.y - b.y);
 }
 function ouvrirCarte(focus) {
   montrer('carte');
@@ -2393,8 +2796,7 @@ function ouvrirCarte(focus) {
   $('nb-fleurs').textContent = nbFaits() + ' / ' + NB_NIVEAUX;
   $('nb-dorees').textContent = nbDorees();
   $('ic-fleur').src = icone('fleur0', 40); $('ic-doree').src = icone('doree', 40);
-  $('ic-herbier').src = icone('fleur2', 40); $('ic-jardin').src = icone('fleur5', 40);
-  $('lab-herbier').textContent = T('herbier'); $('lab-jardin').textContent = T('jardin');
+  $('ic-jardin').src = icone('fleur5', 40); $('lab-jardin').textContent = T('jardin');
   particules = [];
 }
 function dessinerCarte(dt) {
@@ -2404,16 +2806,17 @@ function dessinerCarte(dt) {
   const oy = -carte.y, deb = debloque();
   // pelouse de chaque monde
   for (let m = 0; m < MONDES.length; m++) {
-    const M = MONDES[m], y0 = totalCarte() - (m + 1) * HAUT_MONDE + oy;
-    if (y0 > H || y0 + HAUT_MONDE < 0) continue;
+    const M = MONDES[m], y0 = finMondes() - (m + 1) * HAUT_MONDE + oy, hm = HAUT_MONDE + (m ? 0 : BAS_CARTE);
+    if (y0 > H || y0 + hm < 0) continue;
     const gr = g.createLinearGradient(0, y0, 0, y0 + HAUT_MONDE);
     const suiv = MONDES[Math.min(m + 1, MONDES.length - 1)];
     gr.addColorStop(0, m < MONDES.length - 1 ? suiv.herbe[1] : M.herbe[0]); gr.addColorStop(0.08, M.herbe[0]); gr.addColorStop(1, M.herbe[1]);
     g.fillStyle = gr; g.fillRect(0, y0, W, HAUT_MONDE + 1);
+    if (!m) { g.fillStyle = M.herbe[1]; g.fillRect(0, y0 + HAUT_MONDE, W, BAS_CARTE + 1); }
     // motif de tonte
     g.fillStyle = 'rgba(255,255,255,.05)';
-    for (let k = 0; k < HAUT_MONDE / 80; k++) g.fillRect(0, y0 + k * 80, W, 40);
-    if (M.nuit > 0.5) { g.fillStyle = `rgba(20,20,60,${0.18 * M.nuit})`; g.fillRect(0, y0, W, HAUT_MONDE + 1); }
+    for (let k = 0; k < hm / 80; k++) g.fillRect(0, y0 + k * 80, W, 40);
+    if (M.nuit > 0.5) { g.fillStyle = `rgba(20,20,60,${0.18 * M.nuit})`; g.fillRect(0, y0, W, hm + 1); }
   }
   // décor
   for (const d of carte.decor) {
@@ -2433,7 +2836,7 @@ function dessinerCarte(dt) {
   }
   // panneaux des mondes
   for (let m = 0; m < MONDES.length; m++) {
-    const y = totalCarte() - m * HAUT_MONDE - ENTETE / 2 - 10 + oy;
+    const y = finMondes() - m * HAUT_MONDE - ENTETE / 2 - 10 + oy;
     if (y < -80 || y > H + 80) continue;
     panneau(g, W / 2, y, m);
   }
@@ -2468,33 +2871,50 @@ function dessinerCarte(dt) {
   }
   // lucioles la nuit, papillons le jour
   majParticules(dt); dessinerParticules(g);
-  const mc = clamp(Math.floor((totalCarte() - carte.y - H / 2) / HAUT_MONDE), 0, MONDES.length - 1);
+  const mc = clamp(Math.floor((finMondes() - carte.y - H / 2) / HAUT_MONDE), 0, MONDES.length - 1);
   majAmbiance(dt); dessinerAmbiance(g, MONDES[mc].nuit);
 }
 function dessinerDecorCarte(g, x, y, d) {
   const M = MONDES[d.m], s = 34 * d.s, nuit = M.nuit > 0.5;
+  const ombre = (dy, rx) => { g.fillStyle = 'rgba(20,40,20,.16)'; g.beginPath(); g.ellipse(x, y + dy, rx, rx * 0.32, 0, 0, TAU); g.fill(); };
   if (d.t === 'touffe') { g.strokeStyle = shade(M.herbe[2], -10); g.lineWidth = 2; g.lineCap = 'round'; g.beginPath(); for (let k = -1; k <= 1; k++) { g.moveTo(x + k * 4, y); g.quadraticCurveTo(x + k * 5, y - 6 * d.s, x + k * 7 + Math.sin(tJeu * 1.5 + x) * 1.5, y - 10 * d.s); } g.stroke(); return; }
   if (d.t === 'fleurette') { g.fillStyle = ['#fff', '#ffe27a', '#ffc0d8', '#c9b8ff'][d.k % 4]; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(x + Math.cos(k * 1.26) * 3 * d.s, y + Math.sin(k * 1.26) * 3 * d.s, 2.2 * d.s, 0, TAU); g.fill(); } g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(x, y, 1.6 * d.s, 0, TAU); g.fill(); return; }
-  g.fillStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.ellipse(x, y + s * 0.5, s * 0.6, s * 0.2, 0, 0, TAU); g.fill();
+  if (d.t === 'nom' || d.t === 'merci') { dessinerSurprise(g, x, y, d); return; }
   if (d.t === 'arbre') {
-    g.fillStyle = nuit ? '#5a4a52' : '#8a6040'; g.fillRect(x - s * 0.08, y, s * 0.16, s * 0.5);
+    ombre(s * 0.5, s * 0.5);
+    g.fillStyle = nuit ? '#5a4a52' : '#8a6040'; g.beginPath(); g.moveTo(x - s * 0.1, y + s * 0.52); g.lineTo(x - s * 0.06, y); g.lineTo(x + s * 0.06, y); g.lineTo(x + s * 0.1, y + s * 0.52); g.fill();
     const c = nuit ? ['#2c5a52', '#3a7066'] : d.m === 2 ? ['#d99a4a', '#efbf63'] : d.m === 3 ? ['#9a6fb0', '#c08fd0'] : ['#4f9f45', '#6cc05a'];
     g.fillStyle = c[0]; g.beginPath(); g.arc(x, y - s * 0.15, s * 0.5, 0, TAU); g.fill();
     g.fillStyle = c[1]; g.beginPath(); g.arc(x - s * 0.12, y - s * 0.28, s * 0.3, 0, TAU); g.fill();
     if (d.m === 0) { g.fillStyle = '#ffc0d8'; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(x + Math.cos(k * 1.3) * s * 0.3, y - s * 0.15 + Math.sin(k * 1.3) * s * 0.3, s * 0.06, 0, TAU); g.fill(); } }
   } else if (d.t === 'buisson') dessinerRoc(g, x, y, s * 1.2, 2 + d.k * 3, d.m);
   else if (d.t === 'pierre') dessinerRoc(g, x, y, s * 1.1, d.k * 3, d.m);
-  else if (d.t === 'fleurs') { for (let k = 0; k < 3; k++) dessinerFleur(g, x + (k - 1) * s * 0.4, y + (k % 2) * s * 0.2, s * 0.18, d.k + k, 1, tJeu); }
-  else if (d.t === 'mare') {
-    g.fillStyle = nuit ? '#2f5f8f' : '#6fc9f0'; g.beginPath(); g.ellipse(x, y, s * 0.9, s * 0.45, 0, 0, TAU); g.fill();
-    g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.ellipse(x - s * 0.2, y - s * 0.12, s * 0.35, s * 0.08, 0, 0, TAU); g.fill();
-    g.fillStyle = nuit ? '#3f8a6a' : '#6ccf6a'; g.beginPath(); g.arc(x + s * 0.3, y + s * 0.05, s * 0.14, 0.4, TAU - 0.2); g.lineTo(x + s * 0.3, y + s * 0.05); g.fill();
-    if (nuit) { g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.arc(x - s * 0.3, y, s * 0.06, 0, TAU); g.fill(); }
+  else if (d.t === 'fleurs') { // un petit massif : tiges, feuilles, puis les fleurs
+    ombre(s * 0.32, s * 0.45);
+    g.strokeStyle = nuit ? '#3f7a66' : '#4f9a45'; g.lineWidth = 2; g.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { const fx = x + (k - 1) * s * 0.36, fy = y + (k % 2) * s * 0.12 - s * 0.05; g.beginPath(); g.moveTo(x + (k - 1) * s * 0.12, y + s * 0.3); g.quadraticCurveTo(fx, fy + s * 0.2, fx, fy); g.stroke(); }
+    g.fillStyle = nuit ? '#3f8a6a' : '#6cbf55';
+    g.beginPath(); g.ellipse(x - s * 0.16, y + s * 0.22, s * 0.14, s * 0.05, -0.5, 0, TAU); g.ellipse(x + s * 0.16, y + s * 0.22, s * 0.14, s * 0.05, 0.5, 0, TAU); g.fill();
+    for (let k = 0; k < 3; k++) dessinerFleur(g, x + (k - 1) * s * 0.36, y + (k % 2) * s * 0.12 - s * 0.05, s * 0.18, d.k + k, 1, tJeu);
+  } else if (d.t === 'mare') { // creusée dans la pelouse : berge, eau plus sombre au fond, reflet, nénuphar
+    const rx = s * 0.9, ry = s * 0.42;
+    g.fillStyle = nuit ? '#3d6a5a' : shade(M.herbe[2], -14); g.beginPath(); g.ellipse(x, y + ry * 0.12, rx + 4, ry + 4, 0, 0, TAU); g.fill();
+    g.fillStyle = nuit ? '#6f8a7a' : '#d9c79a'; g.beginPath(); g.ellipse(x, y + ry * 0.06, rx + 1.5, ry + 1.5, 0, 0, TAU); g.fill();
+    const eau = g.createLinearGradient(0, y - ry, 0, y + ry);
+    eau.addColorStop(0, nuit ? '#1f4472' : '#3f9fd6'); eau.addColorStop(0.45, nuit ? '#2f5f8f' : '#6fc9f0'); eau.addColorStop(1, nuit ? '#4a7fae' : '#a8e2f8');
+    g.fillStyle = eau; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.45)'; g.lineWidth = 1.5; const v = (tJeu * 0.6 + d.k) % 1;
+    g.globalAlpha = 1 - v; g.beginPath(); g.ellipse(x - rx * 0.25, y + ry * 0.1, rx * 0.2 * (0.4 + v), ry * 0.2 * (0.4 + v), 0, 0, TAU); g.stroke(); g.globalAlpha = 1;
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(x + rx * 0.15, y - ry * 0.45, rx * 0.35, ry * 0.12, 0, 0, TAU); g.fill();
+    g.fillStyle = nuit ? '#3f8a6a' : '#5cbf5f'; g.beginPath(); g.arc(x + rx * 0.4, y + ry * 0.15, s * 0.14, 0.4, TAU - 0.2); g.lineTo(x + rx * 0.4, y + ry * 0.15); g.fill();
+    if (nuit) { g.fillStyle = 'rgba(255,255,240,.7)'; g.beginPath(); g.arc(x - rx * 0.3, y - ry * 0.1, s * 0.05, 0, TAU); g.fill(); }
   } else if (d.t === 'roseaux') {
-    g.strokeStyle = nuit ? '#3f7a66' : '#5aa04a'; g.lineWidth = 2.5;
-    for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(x + k * 5 - 8, y + s * 0.4); g.quadraticCurveTo(x + k * 5 - 6, y - s * 0.2, x + k * 7 - 12 + Math.sin(tJeu + k) * 3, y - s * 0.6); g.stroke(); }
-    g.fillStyle = '#8a5a3a'; g.beginPath(); g.ellipse(x - 2, y - s * 0.3, 3, 8, 0, 0, TAU); g.fill();
+    ombre(s * 0.4, s * 0.3);
+    g.strokeStyle = nuit ? '#3f7a66' : '#5aa04a'; g.lineWidth = 2.5; g.lineCap = 'round';
+    for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(x + k * 4 - 6, y + s * 0.4); g.quadraticCurveTo(x + k * 5 - 6, y - s * 0.2, x + k * 7 - 12 + Math.sin(tJeu + k) * 3, y - s * 0.6); g.stroke(); }
+    g.fillStyle = '#8a5a3a'; g.beginPath(); g.ellipse(x - 4 + Math.sin(tJeu) * 1.5, y - s * 0.32, 3, 8, 0, 0, TAU); g.fill();
   } else if (d.t === 'champi') {
+    ombre(s * 0.3, s * 0.5);
     for (let k = 0; k < 3; k++) {
       const mx = x + (k - 1) * s * 0.35, my = y + (k % 2) * s * 0.15, ms = s * (0.22 + (k % 2) * 0.08);
       g.fillStyle = '#fff3e0'; g.fillRect(mx - ms * 0.25, my - ms * 0.2, ms * 0.5, ms * 0.8);
@@ -2502,6 +2922,7 @@ function dessinerDecorCarte(g, x, y, d) {
       g.fillStyle = '#fff'; g.beginPath(); g.arc(mx - ms * 0.35, my - ms * 0.5, ms * 0.17, 0, TAU); g.fill();
     }
   } else if (d.t === 'lanterne') {
+    ombre(s * 0.5, s * 0.25);
     const gl = g.createRadialGradient(x, y - s * 0.3, 0, x, y - s * 0.3, s * 0.9);
     gl.addColorStop(0, 'rgba(255,220,130,.6)'); gl.addColorStop(1, 'rgba(255,220,130,0)');
     g.fillStyle = gl; g.beginPath(); g.arc(x, y - s * 0.3, s * 0.9, 0, TAU); g.fill();
@@ -2546,15 +2967,15 @@ cv.addEventListener('pointerup', ev => {
     const [x, y] = posNoeud(i);
     if (Math.hypot(ev.clientX - x, ev.clientY - (y - carte.y)) < 38) { SON.init(); son('clic'); vibrer(); fondu(() => { montrer('jeu'); chargerNiveau(i); }); return; }
   }
+  if (toucherSurpriseCarte(ev.clientX, ev.clientY + carte.y)) return;
   // sinon : petite note si on touche une fleur déjà éclose
   for (let i = 0; i < NB_NIVEAUX; i++) {
     const [x, y] = posNoeud(i);
     if (Math.hypot(ev.clientX - x, ev.clientY - (y - carte.y)) < 40 && !faits[i]) { son('refus'); return; }
   }
 });
-$('b-retour-carte').onclick = () => { son('clic'); fondu(() => montrer('titre')); };
+$('b-retour-carte').onclick = () => { son('clic'); fondu(() => { preparerTitre(); montrer('titre'); }); };
 $('b-reglages-carte').onclick = () => { son('clic'); ouvrirReglages(); };
-$('b-herbier').onclick = () => { SON.init(); son('clic'); ouvrirHerbier(); };
 $('b-jardin').onclick = () => { SON.init(); son('clic'); fondu(ouvrirJardin); };
 
 // ----- boutons du niveau -----
@@ -2604,7 +3025,7 @@ function ouvrirReglages() {
     <div class="reglage">${T('rIntro')}<button class="btn petit lav" id="r-intro">▶</button></div>
     <div class="reglage">${T('rLangue')}<button class="btn petit lav" id="r-langue">${TEXTES[langue === 'fr' ? 'en' : 'fr'].langueNom}</button></div>
     <div class="boutons" style="margin-top:16px"><button class="btn vert" id="p-ok">${T('fermer')}</button></div>
-    <p class="credits">${T('credits')}</p>`, 'reglages');
+    <p class="credits">${T('credits')}${TESTEURS.length ? '<br>' + T('merciCredits') + ' ' + TESTEURS.map(echapper).join(', ') + ' ♥' : ''}</p>`, 'reglages');
   for (const k of ['musique', 'sons', 'vibrations', 'defi']) $('r-' + k).onclick = e => {
     reglages[k] = !reglages[k]; e.currentTarget.classList.toggle('on', reglages[k]); sauverReglages(); SON.maj();
     if (k === 'musique' && ecranActuel !== 'jardin') SON.musique(reglages.musique, ecranActuel === 'jeu' ? monde() : null);
@@ -2612,22 +3033,22 @@ function ouvrirReglages() {
   };
   $('r-langue').onclick = () => {
     langue = langue === 'fr' ? 'en' : 'fr'; SAUVE.ecrire('langue', langue); appliquerLangue(); son('clic');
-    preparerTitre(); if (ecranActuel === 'jeu') majHud(); if (ecranActuel === 'carte') ouvrirCarte(); if (ecranActuel === 'jardin') { $('titre-jardin').textContent = T('jardin'); majPlateauJardin(); }
+    preparerTitre(); if (ecranActuel === 'jeu') majHud(); if (ecranActuel === 'carte') ouvrirCarte(); if (ecranActuel === 'jardin') { majTexteJardin(); majPlateauJardin(); if (JARDIN.onglet === 'herbier') remplirHerbier(); }
     ouvrirReglages();
   };
   $('r-intro').onclick = () => { SON.init(); son('clic'); fermerPop(); const ici = ecranActuel, n = J.n; fondu(() => lancerIntro(() => { if (ici === 'jeu') { montrer('jeu'); chargerNiveau(n); } else if (ici === 'carte') ouvrirCarte(); else if (ici === 'jardin') ouvrirJardin(); else { montrer('titre'); SON.musique(reglages.musique, 0); } })); };
   $('p-ok').onclick = () => { son('clic'); fermerPop(); };
 }
-$('voile').addEventListener('pointerdown', e => { if (e.target === $('voile') && (popOuverte === 'reglages' || popOuverte === 'herbier')) fermerPop(); });
+$('voile').addEventListener('pointerdown', e => { if (e.target === $('voile') && POPS_LIBRES.includes(popOuverte)) fermerPop(); });
 
 // ----- bouton retour Android, mise en pause -----
 function retour() {
-  if (popOuverte === 'reglages' || popOuverte === 'herbier') { fermerPop(); return true; }
+  if (POPS_LIBRES.includes(popOuverte)) { fermerPop(); return true; }
   if (ecranActuel === 'jardin') { fermerJardin(); return true; }
   if (ecranActuel === 'intro') { finirIntro(); return true; }
   if (popOuverte === 'victoire') { $('p-carte').click(); return true; }
   if (ecranActuel === 'jeu') { if (!(J.concert && !J.fini)) fondu(() => ouvrirCarte(J.n)); return true; }
-  if (ecranActuel === 'carte') { fondu(() => montrer('titre')); return true; }
+  if (ecranActuel === 'carte') { fondu(() => { preparerTitre(); montrer('titre'); }); return true; }
   return false;
 }
 const AppNative = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
@@ -2655,6 +3076,117 @@ preparerTitre();
 montrer('titre');
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => { icones = {}; });
 requestAnimationFrame(boucle);
+
+'use strict';
+// ===== Surprises pour les premiers jardiniers (bêta-testeurs) =====
+// - carte : un panneau « Merci » sous la Prairie, et le prénom de chaque testeur gravé sur une pierre quelque part
+// - accueil : toucher 5 fois le titre fait pleuvoir les prénoms
+// - en jeu : toucher Mélo 7 fois de suite, elle salue un testeur
+// - Mon jardin › Mes mélodies : le code MERCI joue la mélodie des jardiniers
+const TESTEURS = ['Mimiche', 'Mamie Rabette', 'Mousse', 'Baptou']; // prénoms ou pseudos, dans l'ordre où ils apparaissent sur la carte
+
+// ----- carte -----
+function surprisesCarte(m, poses) { // appelé par preparerDecorCarte, avant les décors au hasard : ces places sont réservées
+  if (!TESTEURS.length) return;
+  if (m === 0) { const d = { m, x: 0.13, y: finMondes() + 48, t: 'merci', s: 1, k: 0, rr: 40 }; poses.push(d); carte.decor.push(d); }
+  TESTEURS.forEach((nom, i) => {
+    if (i % MONDES.length !== m) return;
+    const r = rnd(101 + i * 17), tour = (i / MONDES.length) | 0;
+    const y = finMondes() - (m + 1) * HAUT_MONDE + HAUT_MONDE * (0.18 + ((tour * 0.37 + r() * 0.2) % 0.7));
+    const d = { m, x: (i + tour) % 2 ? 0.88 : 0.12, y, t: 'nom', s: 1, k: i, rr: 38, nom };
+    poses.push(d); carte.decor.push(d);
+  });
+}
+function dessinerSurprise(g, x, y, d) {
+  const nuit = MONDES[d.m].nuit > 0.5;
+  if (d.t === 'nom') { // pierre gravée, avec une petite fleur
+    g.font = '700 12px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const tw = Math.max(44, g.measureText(d.nom).width + 18), jl = d.joie && tJeu < d.joie ? Math.sin((d.joie - tJeu) * 14) * 3 : 0;
+    g.fillStyle = 'rgba(20,40,20,.18)'; g.beginPath(); g.ellipse(x, y + 13, tw * 0.55, 6, 0, 0, TAU); g.fill();
+    const gr = g.createLinearGradient(0, y - 14, 0, y + 12); gr.addColorStop(0, nuit ? '#c4cce0' : '#e9e3d8'); gr.addColorStop(1, nuit ? '#8a93ad' : '#b5ad9f');
+    g.fillStyle = gr; g.beginPath(); g.roundRect(x - tw / 2, y - 13 + jl, tw, 25, 11); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(x - tw * 0.2, y - 8 + jl, tw * 0.2, 2.5, 0, 0, TAU); g.fill();
+    g.fillStyle = '#6b5a4a'; g.fillText(d.nom, x, y + jl);
+    dessinerFleur(g, x + tw / 2 - 3, y - 13 + jl, 7, d.k, 1, tJeu);
+  } else if (d.t === 'merci') { // panneau de bois « Merci ♥ »
+    g.fillStyle = 'rgba(20,40,20,.18)'; g.beginPath(); g.ellipse(x, y + 26, 34, 7, 0, 0, TAU); g.fill();
+    g.fillStyle = '#7a5236'; g.fillRect(x - 3, y, 6, 26);
+    g.fillStyle = '#c89662'; g.beginPath(); g.roundRect(x - 40, y - 22, 80, 28, 8); g.fill();
+    g.strokeStyle = '#9a6a40'; g.lineWidth = 2; g.stroke();
+    g.font = '700 13px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff8ea';
+    g.fillText(T('merciPanneau'), x, y - 8);
+    const pul = 1 + Math.sin(tJeu * 3) * 0.12; g.save(); g.translate(x + 40, y - 22); g.scale(pul, pul); coeur(g, 0, 0, 7); g.restore();
+  }
+}
+function coeur(g, x, y, r) {
+  g.fillStyle = '#ff6f9c'; g.beginPath(); g.moveTo(x, y + r * 0.9);
+  g.bezierCurveTo(x - r * 1.4, y - r * 0.1, x - r * 0.6, y - r * 1.2, x, y - r * 0.4);
+  g.bezierCurveTo(x + r * 0.6, y - r * 1.2, x + r * 1.4, y - r * 0.1, x, y + r * 0.9); g.fill();
+}
+function toucherSurpriseCarte(x, y) { // y dans le repère de la carte ; vrai si une surprise a été touchée
+  for (const d of carte.decor) {
+    if (d.t !== 'nom' && d.t !== 'merci') continue;
+    if (Math.abs(x - d.x * W) > 46 || Math.abs(y - d.y) > 26) continue;
+    SON.init(); vibrer();
+    const sx = d.x * W, sy = d.y - carte.y;
+    if (d.t === 'merci') { ouvrirMerci(); return true; }
+    d.joie = tJeu + 0.6; son('eclot', 4 + (d.k % 5));
+    for (let k = 0; k < 14; k++) particule('petale', sx, sy, { vx: (Math.random() - 0.5) * 160, vy: -60 - Math.random() * 90, vie: 1.6 });
+    particule('texte', sx, sy - 30, { vy: -26, vie: 2.4, txt: T('merciNom', d.nom), vr: 0, rot: 0 });
+    return true;
+  }
+  return false;
+}
+function ouvrirMerci() {
+  son('victoire');
+  for (let k = 0; k < 40; k++) particule('petale', Math.random() * W, -20 - Math.random() * 80, { vx: (Math.random() - 0.5) * 60, vy: 50 + Math.random() * 60, vie: 4 });
+  ouvrirPop(`<div class="ruban">${T('merciTitre')}</div>
+    <p class="txt">${T('merciTxt')}</p>
+    <div class="testeurs">${TESTEURS.map((n, i) => `<span><img src="${icone('fleur' + (i % ESPECES.length), 28)}" alt="">${echapper(n)}</span>`).join('')}</div>
+    <div class="boutons" style="margin-top:14px"><button class="btn vert petit" id="p-ok">${T('fermer')}</button></div>`, 'merci');
+  $('p-ok').onclick = () => { son('clic'); fermerPop(); };
+}
+
+// ----- accueil : le titre -----
+const soleilTitre = { n: 0, t: 0 };
+$('logo').addEventListener('pointerdown', () => {
+  if (ecranActuel !== 'titre' || popOuverte || !TESTEURS.length) return;
+  const now = performance.now(); if (now - soleilTitre.t > 1500) soleilTitre.n = 0;
+  soleilTitre.t = now; soleilTitre.n++; SON.init(); son('note', 'bud', 3 + soleilTitre.n, 0, 0.5);
+  if (soleilTitre.n < 5) return;
+  soleilTitre.n = 0; son('victoire'); vibrer('fort');
+  TESTEURS.forEach((nom, i) => setTimeout(() => {
+    particule('texte', W * (0.15 + Math.random() * 0.7), -20, { vy: 55 + Math.random() * 25, vx: (Math.random() - 0.5) * 20, vie: H / 60 + 2, txt: nom, rot: 0, vr: 0, col: ESPECES[i % ESPECES.length].c[1] });
+    for (let k = 0; k < 4; k++) particule('petale', Math.random() * W, -10, { vy: 50 + Math.random() * 40, vie: 8 });
+  }, i * 380));
+});
+
+// ----- en jeu : Mélo salue un testeur -----
+const tapesMelo = { n: 0, t: 0 };
+function salutMelo() { // appelé à chaque fois qu'on touche Mélo ; vrai si c'est la surprise
+  if (!TESTEURS.length) return false;
+  const now = performance.now(); if (now - tapesMelo.t > 900) tapesMelo.n = 0;
+  tapesMelo.t = now; tapesMelo.n++;
+  if (tapesMelo.n < 7) return false;
+  tapesMelo.n = 0;
+  const nom = TESTEURS[Math.floor(Math.random() * TESTEURS.length)];
+  J.meloJoie = tJeu + 2; son('victoire'); vibrer('fort');
+  for (let k = 0; k < 16; k++) particule('note', J.melo.x + (Math.random() - 0.5) * 60, J.melo.y, { vy: -50 - Math.random() * 40, vie: 1.8, col: ['#ffffff', '#ffe27a', '#ffc0d8'][k % 3] });
+  montrerBulle(T('salut', nom), 5);
+  return true;
+}
+
+// ----- Mon jardin : le code MERCI -----
+const MELODIE_MERCI = { // une petite valse qui monte, pour remercier
+  m: [[0, 3], [1, 2], [2, 1], [3, 0], [4, 1], [5, 2], [6, 1], [7, 0]], b: [[0, 5], [2, 4], [4, 5], [6, 4]], h: [[3, 2], [7, 2]],
+};
+function grilleMerci() {
+  const g = new Array(JCOLS * JLIGNES).fill(0);
+  for (const [x, y] of MELODIE_MERCI.m) g[y * JCOLS + x] = 7; // pivoine-flûte
+  for (const [x, y] of MELODIE_MERCI.b) g[y * JCOLS + x] = 2; // soleillette (harpe)
+  for (const [x, y] of MELODIE_MERCI.h) g[y * JCOLS + x] = 3; // étoile mauve (cloche)
+  return g;
+}
 
 </script>
 </body>

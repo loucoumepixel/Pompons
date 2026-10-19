@@ -173,7 +173,13 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 .champ.erreur { border-color: #ff8fb1; animation: secoue .4s; }
 .liste-melodies { max-height: 52vh; overflow-y: auto; text-align: left; margin: 0 -6px; padding: 0 6px; }
 .liste-melodies h3 { font-family: 'Fredoka'; font-weight: 600; font-size: 16px; color: #6b4a8a; margin: 10px 0 6px; }
-.modeles { display: flex; gap: 6px; }
+.modeles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.liste-ambiances { display: flex; flex-direction: column; gap: 5px; max-height: 54vh; overflow-y: auto; }
+.ambiance { display: flex; flex-direction: column; align-items: flex-start; text-align: left; background: #f4faf0; border: 2px solid transparent; border-radius: 14px; padding: 6px 14px; font-family: 'Nunito'; color: var(--texte); cursor: pointer; }
+.ambiance b { font-size: 16px; font-weight: 800; }
+.ambiance span { font-size: 13px; opacity: .75; }
+.ambiance.choisie { background: #efe6ff; border-color: #a98be0; }
+.ambiance.choisie b::after { content: ' ♪'; color: #8a6ad0; }
 .modele { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #f4faf0; border-radius: 14px; padding: 8px 4px; font-family: 'Nunito'; font-weight: 800; font-size: 13px; color: var(--texte); line-height: 1.1; }
 .modele span { font-size: 22px; }
 .ligne-melodie { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
@@ -292,7 +298,7 @@ const SAUVE = (() => {
   const ecrire = (k, v) => { mem[k] = v; try { localStorage.setItem(P + k, JSON.stringify(v)); } catch (e) { } };
   return { lire, ecrire };
 })();
-const reglages = Object.assign({ musique: true, sons: true, vibrations: true, defi: false }, SAUVE.lire('reglages', {}));
+const reglages = Object.assign({ ambiance: 'auto', musique: true, sons: true, vibrations: true, defi: false }, SAUVE.lire('reglages', {}));
 function sauverReglages() { SAUVE.ecrire('reglages', reglages); }
 
 function vibrer(force) {
@@ -306,7 +312,7 @@ function vibrer(force) {
 
 // ----- sons : tout est synthétisé en direct -----
 const SON = (() => {
-  let ac = null, maitre, busSons, busMus, busNat, envoi, bruitBuf;
+  let ac = null, maitre, busSons, busMus, busNat, envoi, bruitBuf, sortie0;
   // gammes pentatoniques par monde (racine MIDI + intervalles)
   const GAMMES = [
     { r: 60, i: [0, 2, 4, 7, 9] },     // Prairie : do majeur
@@ -331,7 +337,7 @@ const SON = (() => {
     maitre.connect(comp); comp.connect(ac.destination);
     busSons = ac.createGain(); busSons.connect(maitre);
     busMus = ac.createGain(); busMus.connect(maitre);
-    busNat = ac.createGain(); busNat.connect(maitre);
+    busNat = ac.createGain(); busNat.connect(maitre); sortie0 = busSons;
     // grande réverbération douce (jardin en plein air)
     const rev = ac.createConvolver();
     const n = ac.sampleRate * 2.8 | 0, buf = ac.createBuffer(2, n, ac.sampleRate);
@@ -353,7 +359,7 @@ const SON = (() => {
   function osc(type, f, t0, dur, vol, sortie, att, rev) {
     const o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.value = f; env(g, t0, att || 0.005, vol, dur);
-    o.connect(g); g.connect(sortie || busSons); if (rev !== 0) { const s = ac.createGain(); s.gain.value = rev == null ? 1 : rev; g.connect(s); s.connect(envoi); }
+    o.connect(g); g.connect(sortie || sortie0); if (rev !== 0) { const s = ac.createGain(); s.gain.value = rev == null ? 1 : rev; g.connect(s); s.connect(envoi); }
     o.start(t0); o.stop(t0 + dur + 0.05); return o;
   }
   function bruit(t0, dur, f, q, vol, f2, sortie, type) {
@@ -361,7 +367,7 @@ const SON = (() => {
     const fl = ac.createBiquadFilter(); fl.type = type || 'bandpass'; fl.Q.value = q; fl.frequency.setValueAtTime(f, t0);
     if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
     const g = ac.createGain(); env(g, t0, Math.min(0.02, dur / 3), vol, dur);
-    s.connect(fl); fl.connect(g); g.connect(sortie || busSons); g.connect(envoi);
+    s.connect(fl); fl.connect(g); g.connect(sortie || sortie0); g.connect(envoi);
     s.start(t0, Math.random()); s.stop(t0 + dur + 0.05);
   }
   // instruments
@@ -370,7 +376,7 @@ const SON = (() => {
     cloche(m, t, v) {
       const f = fq(m), c = ac.createOscillator(), mo = ac.createOscillator(), mg = ac.createGain(), g = ac.createGain();
       c.frequency.value = f; mo.frequency.value = f * 3.5; mg.gain.setValueAtTime(f * 2.2, t); mg.gain.exponentialRampToValueAtTime(1, t + 1.4);
-      mo.connect(mg); mg.connect(c.frequency); env(g, t, 0.004, 0.22 * v, 2.6); c.connect(g); g.connect(busSons); g.connect(envoi);
+      mo.connect(mg); mg.connect(c.frequency); env(g, t, 0.004, 0.22 * v, 2.6); c.connect(g); g.connect(sortie0); g.connect(envoi);
       c.start(t); mo.start(t); c.stop(t + 2.7); mo.stop(t + 2.7);
       osc('sine', f * 2, t, 1.4, 0.06 * v);
     },
@@ -378,8 +384,12 @@ const SON = (() => {
     harpe(m, t, v) {
       const f = fq(m), o = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
       o.type = 'triangle'; o.frequency.value = f; fl.type = 'lowpass'; fl.frequency.setValueAtTime(f * 8, t); fl.frequency.exponentialRampToValueAtTime(f * 1.5, t + 0.8);
-      env(g, t, 0.004, 0.2 * v, 1.3); o.connect(fl); fl.connect(g); g.connect(busSons); g.connect(envoi); o.start(t); o.stop(t + 1.4);
+      env(g, t, 0.004, 0.2 * v, 1.3); o.connect(fl); fl.connect(g); g.connect(sortie0); g.connect(envoi); o.start(t); o.stop(t + 1.4);
     },
+    // pour les ambiances
+    piano(m, t, v) { const f = fq(m); osc('sine', f, t, 2.4, 0.15 * v, null, 0.003); osc('sine', f * 2, t, 1, 0.045 * v, null, 0.003); osc('sine', f * 3, t, 0.4, 0.018 * v, null, 0.002); osc('triangle', f, t, 1.2, 0.03 * v, null, 0.004); },
+    boiteMus(m, t, v) { const f = fq(m); osc('sine', f, t, 1.9, 0.13 * v, null, 0.003); osc('sine', f * 2, t, 0.5, 0.025 * v, null, 0.002); osc('sine', f * 5.95, t, 0.07, 0.025 * v, null, 0.002); },
+    ep(m, t, v, d) { const f = fq(m); osc('sine', f, t, d, 0.07 * v, null, 0.02); osc('triangle', f / 2, t, d * 0.6, 0.012 * v, null, 0.02); },
     souffle(m, t, v) { const f = fq(m); osc('sine', f, t, 0.9, 0.12 * v, null, 0.12); bruit(t, 0.5, f * 2, 6, 0.05 * v); },
   };
   const jouer = {
@@ -391,6 +401,7 @@ const SON = (() => {
     // notes du jardin, appelées pendant la mélodie
     note(type, deg, quand, vol) {
       if (!ac) return; const t = Math.max(T(), quand || 0), v = vol == null ? 1 : vol;
+      calme = Math.max(calme, t + 1.1); // la musique de fond laisse la place à la note
       if (type === 'cloche') I.cloche(hauteur(deg - 5), t, v);
       else if (type === 'bud') I.kalimba(hauteur(deg), t, v);
       else if (type === 'lys') { I.kalimba(hauteur(deg), t, v * 0.8); I.kalimba(hauteur(deg + 2), t + 0.03, v * 0.6); }
@@ -413,35 +424,98 @@ const SON = (() => {
     manque() { if (!ac) return; const t = T(); I.marimba(hauteur(4), t, 0.5); I.marimba(hauteur(2), t + 0.14, 0.45); },
   };
 
-  // ----- ambiance : nappes + petite boîte à musique + sons de nature, selon le monde -----
-  let musOn = false, prochain = 0, pas = 0, minuteur = null, eteinte = 0;
+  // ----- ambiances : toutes dans la gamme du monde, pour se marier avec les notes des feuilles -----
+  // auto : une ambiance par monde ; sinon celle choisie dans les réglages. L'accueil a son propre thème.
+  let musOn = false, prochain = 0, pas = 0, minuteur = null, titre = false, apercu = null, discret = false, calme = 0, dernier = null, melDeg = 5;
   const PROGS = [[0, 5, 3, 4], [0, 3, 5, 4], [0, 4, 5, 3], [0, 5, 6, 4], [0, 4, 1, 5], [0, 5, 3, 4]];
+  const AUTO = ['boite', 'harpe', 'piano', 'lofi', 'nuit', 'piano'];
   let natNoeuds = [];
-  function nappe(rootDeg, t, dur) {
+  function nappe(rootDeg, t, dur, vol) {
     const fl = ac.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 900; fl.Q.value = 0.3;
-    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 2.2); g.gain.linearRampToValueAtTime(0.0001, t + dur + 1.5);
+    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol || 0.05, t + 2.2); g.gain.linearRampToValueAtTime(0.0001, t + dur + 1.5);
     fl.connect(g); g.connect(busMus); g.connect(envoi);
     [0, 2, 4].forEach(k => {
       const m = hauteur(rootDeg + k - 10);
       [-6, 6].forEach(det => { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fq(m); o.detune.value = det; o.connect(fl); o.start(t); o.stop(t + dur + 1.6); });
     });
-    osc('sine', fq(hauteur(rootDeg - 10) - 0) / 2, t, dur, 0.06, busMus, 1.2, 0.2);
+    osc('sine', fq(hauteur(rootDeg - 10)) / 2, t, dur, 0.06, busMus, 1.2, 0.2);
   }
-  function planifier() {
-    if (!ac || !musOn) return;
-    const croche = 0.42;
-    while (prochain < ac.currentTime + 0.8) {
-      const prog = PROGS[monde % PROGS.length], mes = Math.floor(pas / 16) % 4, k = pas % 16, racine = prog[mes];
-      if (k === 0) nappe(racine, prochain, croche * 16);
-      // boîte à musique clairsemée, uniquement dans la gamme
-      if (hasard() < (k % 4 === 0 ? 0.5 : k % 2 === 0 ? 0.22 : 0.08)) {
-        const deg = racine + [0, 2, 4, 5, 7][Math.floor(hasard() * 5)];
-        const t = prochain, m = hauteur(deg);
+  const libre = t => t > calme; // pas de mélodie de fond juste après une note de feuille
+  // petite mélodie qui se promène pas à pas, et retombe sur l'accord en début de mesure
+  function promenade(racine, k, bas, haut) {
+    if (k === 0) melDeg = racine + [5, 7, 9][Math.floor(hasard() * 3)];
+    else melDeg = clamp(melDeg + [-2, -1, -1, 1, 1, 2, 0][Math.floor(hasard() * 7)], racine + bas, racine + haut);
+    return melDeg;
+  }
+  // thème de l'accueil : 8 mesures de 8 croches [pas, degré, durée] ; le début est le modèle « Thème du jardin » de Mon jardin
+  const THEME = [[0, 5, 2], [2, 7, 2], [4, 6, 2], [6, 5, 2], [8, 4, 2], [10, 3, 2], [12, 4, 2], [14, 5, 2],
+    [16, 4, 2], [18, 5, 2], [20, 6, 2], [22, 7, 2], [24, 6, 2], [26, 5, 1], [27, 6, 1], [28, 3, 4],
+    [32, 5, 2], [34, 7, 2], [36, 8, 2], [38, 7, 2], [40, 6, 2], [42, 5, 2], [44, 4, 2], [46, 5, 2],
+    [48, 4, 2], [50, 5, 2], [52, 6, 2], [54, 4, 2], [56, 3, 2], [58, 6, 2], [60, 5, 4]];
+  const ACC_THEME = [0, 1, 2, 3, 0, 1, 2, 3];
+  const STYLES = {
+    titre: { c: 0.3, etape(k, racine, t, c) {
+      const p = pas % 64, tour = (pas / 64) | 0, mes = p >> 3, acc = ACCORDS_MAJ[ACC_THEME[mes]], r = GAMMES[0].r;
+      if (p % 8 === 0) {
+        for (const n of acc) osc('sine', fq(r - 12 + n), t, c * 8.5, 0.022, busMus, 0.4, 0.7);
+        osc('triangle', fq(r - 24 + acc[0]), t, c * 7.5, 0.09, busMus, 0.02, 0.2);
+      }
+      const arp = [0, 1, 2, 3, 4, 2, 3, 1][p % 8], n = arp < 3 ? acc[arp] : acc[arp - 3] + 12;
+      if (tour > 0 || mes > 1) I.harpe(r - 12 + n, t + 0.01, 0.28);
+      for (const [s, d, l] of THEME) if (s === p) {
+        const m = hauteur(d, 0); I.boiteMus(m, t, 1);
+        if (tour % 2 === 1) I.kalimba(m - 12, t, 0.35);
+        if (l >= 4) I.cloche(m + 12, t, 0.12);
+      }
+    } },
+    boite: { c: 0.42, etape(k, racine, t) {
+      if (k === 0) nappe(racine, t, 0.42 * 16);
+      if (libre(t) && hasard() < (k % 4 === 0 ? 0.5 : k % 2 === 0 ? 0.22 : 0.08)) {
+        const m = hauteur(racine + [0, 2, 4, 5, 7][Math.floor(hasard() * 5)]);
         osc('sine', fq(m), t, 1.6, 0.05, busMus, 0.004); osc('sine', fq(m) * 5.95, t, 0.05, 0.008, busMus, 0.002);
       }
-      // nature
-      if (k === 8 && hasard() < 0.5) natureEvenement(prochain);
-      prochain += croche; pas++;
+    } },
+    piano: { c: 0.4, etape(k, racine, t) {
+      if (k === 0) nappe(racine, t, 0.4 * 16, 0.025);
+      const main = { 0: 0, 3: 2, 6: 4, 8: 0, 11: 2, 14: 4 }[k];
+      if (main != null) I.piano(hauteur(racine + main - 5), t, k === 0 ? 0.55 : 0.35);
+      if (k === 0) I.piano(hauteur(racine - 10), t, 0.45);
+      if (libre(t) && (k % 4 === 0 ? hasard() < 0.6 : k % 2 === 0 && hasard() < 0.2)) I.piano(hauteur(promenade(racine, k, 3, 10)), t, 0.6);
+    } },
+    harpe: { c: 0.38, etape(k, racine, t) {
+      if (k === 0) nappe(racine, t, 0.38 * 16, 0.03);
+      if (k % 2 === 0) I.harpe(hauteur(racine - 5 + [0, 2, 4, 5, 7, 9, 7, 5][k / 2]), t, 0.32);
+      if (libre(t) && k % 4 === 2 && hasard() < 0.35) I.harpe(hauteur(promenade(racine, k, 5, 11)), t, 0.4);
+    } },
+    lofi: { c: 0.32, swing: 0.06, etape(k, racine, t, c) {
+      if (k === 0 || k === 10) { const o = osc('sine', 92, t, 0.18, 0.13, busMus, 0.003, 0); o.frequency.exponentialRampToValueAtTime(46, t + 0.16); }
+      if (k === 4 || k === 12) bruit(t, 0.16, 1900, 0.6, 0.03, 900, busMus);
+      if (k % 4 === 2) bruit(t, 0.05, 3200, 0.8, 0.006, 2200, busMus); // charleston feutré, sans aigus
+      if (k === 0 || k === 8) for (const d of [0, 2, 4, 6]) I.ep(hauteur(racine + d - 5), t + d * 0.008, 0.6, c * 7.5);
+      if (k === 0) osc('triangle', fq(hauteur(racine - 10)), t, c * 6, 0.08, busMus, 0.01, 0.1);
+      if (k === 10) osc('triangle', fq(hauteur(racine - 8)), t, c * 5, 0.06, busMus, 0.01, 0.1);
+      if (libre(t) && [2, 6, 11, 14].includes(k) && hasard() < 0.4) I.ep(hauteur(promenade(racine, k, 4, 7) - 5), t, 0.9, 1.2); // mélodie dans le médium
+    } },
+    nuit: { c: 0.5, etape(k, racine, t) {
+      if (k === 0) nappe(racine, t, 0.5 * 16, 0.04);
+      if (k === 0) osc('sine', fq(hauteur(racine - 10)) / 2, t, 0.5 * 15, 0.05, busMus, 2, 0.4);
+      if (libre(t) && k % 4 === 0 && hasard() < 0.3) I.cloche(hauteur(racine + [5, 7, 9][Math.floor(hasard() * 3)]), t, 0.18);
+      if (k === 8 && hasard() < 0.4) osc('sine', fq(hauteur(racine + 12)), t, 3, 0.012, busMus, 1.2, 1);
+    } },
+    nature: { c: 0.42, etape() { } },
+  };
+  const styleActuel = () => apercu || (titre ? 'titre' : reglages.ambiance && reglages.ambiance !== 'auto' && STYLES[reglages.ambiance] ? reglages.ambiance : AUTO[monde]);
+  function planifier() {
+    if (!ac || !musOn) return;
+    const st = styleActuel();
+    if (st !== dernier) { dernier = st; pas = 0; prochain = Math.max(prochain, ac.currentTime + 0.05); fondNature(); }
+    const S = STYLES[st];
+    while (prochain < ac.currentTime + 0.8) {
+      const prog = PROGS[monde % PROGS.length], mes = Math.floor(pas / 16) % 4, k = pas % 16, racine = prog[mes];
+      const t = prochain + (S.swing && k % 2 ? S.swing : 0);
+      if (!discret) { sortie0 = busMus; try { S.etape(k, racine, t, S.c); } catch (e) { console.error(e); } sortie0 = busSons; }
+      if (st === 'nature' ? k % 4 === 0 && hasard() < 0.45 : k === 8 && hasard() < 0.5) natureEvenement(prochain);
+      prochain += S.c; pas++;
     }
   }
   function natureEvenement(t) {
@@ -458,26 +532,36 @@ const SON = (() => {
   function fondNature() {
     natNoeuds.forEach(n => { try { n.stop(); } catch (e) { } }); natNoeuds = [];
     if (!ac) return;
-    // vent, ou ruisseau, en continu
+    // vent, ruisseau ou pluie, en continu
+    const st = styleActuel(), pluie = st === 'harpe', eau = !pluie && (monde === 1 || monde === 4), fort = st === 'nature' ? 1.8 : 1;
     const s = ac.createBufferSource(); s.buffer = bruitBuf; s.loop = true;
-    const fl = ac.createBiquadFilter(); fl.type = 'bandpass';
-    const eau = monde === 1 || monde === 4;
-    fl.frequency.value = eau ? 900 : 500; fl.Q.value = eau ? 0.9 : 0.6;
-    const g = ac.createGain(); g.gain.value = eau ? 0.03 : 0.014;
-    const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = eau ? 0.31 : 0.07; lg.gain.value = eau ? 300 : 260;
+    const fl = ac.createBiquadFilter(); fl.type = pluie ? 'highpass' : 'bandpass';
+    fl.frequency.value = pluie ? 2500 : eau ? 900 : 500; fl.Q.value = pluie ? 0.5 : eau ? 0.9 : 0.6;
+    const g = ac.createGain(); g.gain.value = (pluie ? 0.022 : eau ? 0.03 : 0.014) * fort;
+    const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = eau ? 0.31 : 0.07; lg.gain.value = pluie ? 400 : eau ? 300 : 260;
     lfo.connect(lg); lg.connect(fl.frequency);
     s.connect(fl); fl.connect(g); g.connect(busNat); s.start(); lfo.start();
     natNoeuds.push(s, lfo);
   }
+  // m : numéro du monde, ou 'titre' pour le thème de l'accueil
   function musique(on, m) {
-    if (m != null && m !== monde) { monde = m; if (ac && musOn) fondNature(); }
+    if (m === 'titre') { titre = true; m = 0; } else if (m != null) titre = false;
+    if (m != null && m !== monde) { monde = m; dernier = null; }
     if (!ac) { musOn = on; return; }
-    if (on && !musOn) { musOn = true; prochain = ac.currentTime + 0.1; pas = 0; fondNature(); }
+    if (on && !musOn) { musOn = true; prochain = ac.currentTime + 0.1; pas = 0; dernier = null; }
     if (!on && musOn) { musOn = false; natNoeuds.forEach(n => { try { n.stop(); } catch (e) { } }); natNoeuds = []; }
-    if (on && !minuteur) minuteur = setInterval(planifier, 150);
+    if (on && !minuteur) { minuteur = setInterval(planifier, 150); planifier(); }
     if (!on && minuteur) { clearInterval(minuteur); minuteur = null; }
   }
-  function attenuer(on) { if (!ac) return; const t = ac.currentTime; busMus.gain.cancelScheduledValues(t); busMus.gain.setTargetAtTime(reglages.musique ? (on ? 0.12 : 0.55) : 0, t, 0.4); }
+  // écoute d'une ambiance depuis les réglages (null pour revenir à la musique normale)
+  function ecouterAmbiance(st) { apercu = st; if (st && !musOn) musique(true); }
+  // pendant que les feuilles chantent (écoute, concert) : la musique se retire et reprend ensuite au début d'une mesure
+  function attenuer(on) {
+    if (!ac) return; const t = ac.currentTime;
+    if (discret && !on) { pas = 0; prochain = Math.max(prochain, t + 0.3); }
+    discret = on;
+    busMus.gain.cancelScheduledValues(t); busMus.gain.setTargetAtTime(reglages.musique ? (on ? 0.12 : 0.55) : 0, t, 0.4);
+  }
   function maj() { if (!ac) return; busSons.gain.value = reglages.sons ? 0.8 : 0; busMus.gain.value = reglages.musique ? 0.55 : 0; busNat.gain.value = reglages.musique ? 0.8 : 0; }
   function pause(p) { if (!ac) return; if (p) ac.suspend(); else ac.resume(); }
   const temps = () => ac ? ac.currentTime : 0;
@@ -569,7 +653,7 @@ const SON = (() => {
   }
   // position de la lumière (en colonnes, avec décimales), ou -1 si la boîte ne joue pas
   const boitePhase = () => boite.on && ac ? (ac.currentTime - boite.t0) / boite.pas : -1;
-  return { init, jouer, musique, maj, pause, attenuer, temps, hauteur, concert, chanson, noteFleur, boiteJouer, boitePhase, setMonde: m => { monde = m; } };
+  return { init, jouer, musique, maj, pause, attenuer, ecouterAmbiance, pret: () => !!ac, temps, hauteur, concert, chanson, noteFleur, boiteJouer, boitePhase, setMonde: m => { monde = m; } };
 })();
 function son(nom, a, b, c, d) { try { SON.jouer[nom] && SON.jouer[nom](a, b, c, d); } catch (e) { } }
 
@@ -1202,7 +1286,9 @@ const TEXTES = {
     instruments: ['Kalimba', 'Harpe', 'Cloche', 'Marimba'], especeVerrou: 'Finis d’autres niveaux pour découvrir cette fleur et son instrument.', videRien: 'Plante d’abord une fleur dans le jardin.',
     effacerTxt: 'Retirer toutes les fleurs du jardin ? Tes mélodies enregistrées ne bougent pas.', nomMelodie: 'Donne un nom à ta mélodie :', defautNom: n => 'Ma mélodie ' + n, enregistree: 'Mélodie enregistrée dans Mes mélodies !',
     pleinMelodies: n => 'Tu as déjà ' + n + ' mélodies : supprimes-en une pour en garder une nouvelle.', chargee: 'elle joue ! Change-la à ta guise.',
-    modeles: ['Comptine', 'Berceuse', 'Pluie d’étoiles'], pourCommencer: 'Pour commencer', mesMelodies: 'Mes mélodies', aucuneMelodie: 'Aucune mélodie pour l’instant. Compose, puis touche Enregistrer !',
+    modeles: ['Comptine', 'Berceuse', 'Pluie d’étoiles', 'Thème du jardin'],
+    rAmbiance: 'Ambiance musicale', ambianceTxt: 'Touche une ambiance pour l’écouter. Elle reste toujours dans la gamme des feuilles, et se fait discrète quand elles chantent.',
+    ambiances: { auto: ['Automatique', 'Change avec chaque monde'], boite: ['Boîte à musique', 'Petites notes et nappe douce'], piano: ['Piano doux', 'Un piano calme qui se promène'], harpe: ['Harpe et pluie', 'Arpèges et pluie légère'], lofi: ['Lo-fi du jardin', 'Rythme feutré, piano électrique'], nuit: ['Nuit étoilée', 'Nappes lentes et clochettes'], nature: ['Nature seule', 'Oiseaux, vent et eau, sans musique'] }, pourCommencer: 'Pour commencer', mesMelodies: 'Mes mélodies', aucuneMelodie: 'Aucune mélodie pour l’instant. Compose, puis touche Enregistrer !',
     partager: 'Partager', supprimer: 'Supprimer', collerCode: 'Un ami t’a envoyé un code ?', codeInvalide: 'Ce code ne marche pas : il doit commencer par JS-.', codeCopie: 'Code copié ! Colle-le dans un message à un ami.', codeAffiche: 'Copie ce code et envoie-le à un ami.',
     partageTxt: (nom, code) => '🎵 Écoute ma mélodie « ' + nom + ' » dans Jardin Sonore ! Ouvre Mon jardin › Mes mélodies et colle ce code : ' + code,
     herbier: 'Herbier', herbierTxt: 'Chaque fleur découverte devient un instrument de ton jardin. Touche-la pour écouter sa chanson', eclose: n => 'Éclose ' + n + ' fois', inconnue: 'À découvrir',
@@ -1254,7 +1340,9 @@ const TEXTES = {
     instruments: ['Kalimba', 'Harp', 'Bell', 'Marimba'], especeVerrou: 'Finish more levels to discover this flower and its instrument.', videRien: 'Plant a flower in the garden first.',
     effacerTxt: 'Remove every flower from the garden? Your saved melodies stay safe.', nomMelodie: 'Give your melody a name:', defautNom: n => 'My melody ' + n, enregistree: 'Melody saved in My melodies!',
     pleinMelodies: n => 'You already have ' + n + ' melodies: delete one to keep a new one.', chargee: 'now playing! Change it as you like.',
-    modeles: ['Nursery rhyme', 'Lullaby', 'Starfall'], pourCommencer: 'To get started', mesMelodies: 'My melodies', aucuneMelodie: 'No melodies yet. Compose, then tap Save!',
+    modeles: ['Nursery rhyme', 'Lullaby', 'Starfall', 'Garden theme'],
+    rAmbiance: 'Music style', ambianceTxt: 'Tap a style to hear it. It always stays in the leaves’ scale and steps back when they sing.',
+    ambiances: { auto: ['Automatic', 'Changes with each world'], boite: ['Music box', 'Little notes and a soft pad'], piano: ['Soft piano', 'A calm, wandering piano'], harpe: ['Harp and rain', 'Arpeggios and light rain'], lofi: ['Garden lo-fi', 'Mellow beat, electric piano'], nuit: ['Starry night', 'Slow pads and little bells'], nature: ['Nature only', 'Birds, wind and water, no music'] }, pourCommencer: 'To get started', mesMelodies: 'My melodies', aucuneMelodie: 'No melodies yet. Compose, then tap Save!',
     partager: 'Share', supprimer: 'Delete', collerCode: 'Did a friend send you a code?', codeInvalide: 'This code doesn’t work: it should start with JS-.', codeCopie: 'Code copied! Paste it in a message to a friend.', codeAffiche: 'Copy this code and send it to a friend.',
     partageTxt: (nom, code) => '🎵 Listen to my melody "' + nom + '" in Jardin Sonore! Open My garden › My melodies and paste this code: ' + code,
     herbier: 'Herbarium', herbierTxt: 'Every flower you discover becomes an instrument in your garden. Tap one to hear its song', eclose: n => 'Bloomed ' + n + (n > 1 ? ' times' : ' time'), inconnue: 'Not found yet',
@@ -1365,7 +1453,7 @@ function chargerNiveau(n) {
   J.ecoute = null; J.devoile = 1; J.nouvelles = [];
   J.meilleur = 0; J.tProgres = tJeu; J.aides = 0; J.recommence = 0; arreterAppelAide();
   particules = [];
-  SON.musique(reglages.musique, monde());
+  SON.attenuer(false); SON.musique(reglages.musique, monde());
   mettreEnPage();
   recalculer(true);
   J.melo.x = J.bx - 40; J.melo.y = J.by - 60;
@@ -1531,7 +1619,7 @@ function ramasserDoree() {
 function ecouter() {
   if (J.concert || !J.L) return;
   if (J.sim.gagne) { lancerConcert(); return; }
-  J.ecoute = { t0: tJeu + 0.15, fini: false }; J.dejaSonne = new Set();
+  J.ecoute = { t0: tJeu + 0.15, fini: false }; J.dejaSonne = new Set(); SON.attenuer(true);
   montrerBulle(null); son('page');
 }
 function majEcoute() {
@@ -1541,7 +1629,7 @@ function majEcoute() {
     montrerBulle(T('manque', J.sim.reste), 2.6); son('manque');
     for (const i of J.L.buds) if (!J.sim.ok[i]) { const [cx, cy] = centre(i); particule('anneau', cx, cy, { taille: J.s * 1.3, vie: 0.9, col: 'rgba(255,255,255,.9)' }); }
   }
-  if (e.fini && tJeu - e.tFin > 2.4) J.ecoute = null;
+  if (e.fini && tJeu - e.tFin > 2.4) { J.ecoute = null; if (!J.concert) SON.attenuer(false); }
 }
 // la mélodie est-elle cachée derrière les plantes en ce moment ?
 const masque = () => ecouteLimitee() && !J.concert && !J.ecoute;
@@ -2335,6 +2423,7 @@ const MODELES = [
   { m: [[0, 3], [1, 2], [2, 1], [3, 3], [4, 3], [5, 2], [6, 1], [7, 3]], b: [[0, 5], [4, 5]] }, // comptine
   { m: [[0, 2], [2, 3], [3, 2], [4, 1], [6, 2], [7, 3]], b: [[0, 5], [2, 4], [4, 5], [6, 4]] }, // berceuse
   { m: [[0, 0], [1, 2], [2, 1], [3, 3], [4, 0], [5, 2], [6, 4], [7, 1]], b: [[0, 5], [3, 4], [6, 5]] }, // pluie d'étoiles
+  { m: [[0, 3], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 4], [7, 3]], b: [[0, 5], [4, 4]] }, // thème de l'accueil (début)
 ];
 function grilleModele(k) {
   const c = especesConnues(), dispo = c.map((v, i) => v ? i : -1).filter(i => i >= 0);
@@ -2386,7 +2475,7 @@ function ouvrirMelodies() {
   ouvrirPop(`<div class="ruban lav">${T('melodies')}</div>
     <div class="liste-melodies">
       <h3>${T('pourCommencer')}</h3>
-      <div class="modeles">${noms.map((n, k) => `<button class="modele" data-k="${k}"><span>${['🎶', '🌙', '✨'][k]}</span>${n}</button>`).join('')}</div>
+      <div class="modeles">${noms.map((n, k) => `<button class="modele" data-k="${k}"><span>${['🎶', '🌙', '✨', '🎵'][k]}</span>${n}</button>`).join('')}</div>
       <h3>${T('mesMelodies')} · ${melodies.length}/${MAX_MELODIES}</h3>
       ${melodies.length ? melodies.map((m, k) => `<div class="ligne-melodie"><button class="ouvrir" data-k="${k}"><img src="${icone('fleur' + ((m.g.find(v => v) || 1) - 1), 40)}" alt="">${echapper(m.nom)}</button><button class="mini" data-p="${k}" aria-label="${T('partager')}"><svg viewBox="0 0 24 24" fill="none" stroke="#7f63c0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 13v6h14v-6"/></svg></button><button class="mini" data-s="${k}" aria-label="${T('supprimer')}"><svg viewBox="0 0 24 24" fill="none" stroke="#c46a8a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></svg></button></div>`).join('') : `<p class="petit-txt">${T('aucuneMelodie')}</p>`}
       <h3>${T('collerCode')}</h3>
@@ -2572,13 +2661,15 @@ function dessinerIntro(dt) {
 'use strict';
 // ===== Écrans : titre, carte-jardin, fenêtres, boucle principale =====
 let ecranActuel = 'titre', popOuverte = null;
-const POPS_LIBRES = ['reglages', 'melodies', 'enregistrer', 'effacer', 'merci']; // fenêtres qu'on ferme en touchant à côté ou avec le bouton retour
+const POPS_LIBRES = ['reglages', 'ambiance', 'melodies', 'enregistrer', 'effacer', 'merci']; // fenêtres qu'on ferme en touchant à côté ou avec le bouton retour
 
 function montrer(nom) {
   ecranActuel = nom;
   for (const e of ['titre', 'carte', 'hud', 'jardin', 'intro']) $(e).classList.toggle('on', e === nom || (e === 'hud' && nom === 'jeu'));
   actif = nom === 'jeu';
   if (nom !== 'jeu') montrerBulle(null);
+  if (nom !== 'jeu') SON.attenuer(false);
+  if (nom === 'titre' && SON.pret()) SON.musique(reglages.musique, 'titre');
 }
 function fondu(apres) {
   const f = $('fondu'); f.classList.add('on');
@@ -2990,7 +3081,7 @@ function ouvrirPop(html, classe) {
   popOuverte = classe || true;
   $('pop').innerHTML = html; $('voile').classList.add('on');
 }
-function fermerPop() { popOuverte = null; $('voile').classList.remove('on'); }
+function fermerPop() { if (popOuverte === 'ambiance') finAmbiance(); popOuverte = null; $('voile').classList.remove('on'); }
 function popVictoire() {
   const n = J.n, m = monde(), dernierDuMonde = n % PAR_MONDE === PAR_MONDE - 1, fin = n === NB_NIVEAUX - 1;
   const nbM = faits.slice(m * PAR_MONDE, (m + 1) * PAR_MONDE).reduce((a, b) => a + b, 0);
@@ -3022,6 +3113,7 @@ function ouvrirReglages() {
     ${interrupteur(['sons', T('rSons')], reglages.sons)}
     ${interrupteur(['vibrations', T('rVib')], reglages.vibrations)}
     ${interrupteur(['defi', T('rDefi')], reglages.defi)}
+    <div class="reglage">${T('rAmbiance')}<button class="btn petit lav" id="r-ambiance">${T('ambiances')[reglages.ambiance][0]}</button></div>
     <div class="reglage">${T('rIntro')}<button class="btn petit lav" id="r-intro">▶</button></div>
     <div class="reglage">${T('rLangue')}<button class="btn petit lav" id="r-langue">${TEXTES[langue === 'fr' ? 'en' : 'fr'].langueNom}</button></div>
     <div class="boutons" style="margin-top:16px"><button class="btn vert" id="p-ok">${T('fermer')}</button></div>
@@ -3036,8 +3128,31 @@ function ouvrirReglages() {
     preparerTitre(); if (ecranActuel === 'jeu') majHud(); if (ecranActuel === 'carte') ouvrirCarte(); if (ecranActuel === 'jardin') { majTexteJardin(); majPlateauJardin(); if (JARDIN.onglet === 'herbier') remplirHerbier(); }
     ouvrirReglages();
   };
-  $('r-intro').onclick = () => { SON.init(); son('clic'); fermerPop(); const ici = ecranActuel, n = J.n; fondu(() => lancerIntro(() => { if (ici === 'jeu') { montrer('jeu'); chargerNiveau(n); } else if (ici === 'carte') ouvrirCarte(); else if (ici === 'jardin') ouvrirJardin(); else { montrer('titre'); SON.musique(reglages.musique, 0); } })); };
+  $('r-intro').onclick = () => { SON.init(); son('clic'); fermerPop(); const ici = ecranActuel, n = J.n; fondu(() => lancerIntro(() => { if (ici === 'jeu') { montrer('jeu'); chargerNiveau(n); } else if (ici === 'carte') ouvrirCarte(); else if (ici === 'jardin') ouvrirJardin(); else montrer('titre'); })); };
+  $('r-ambiance').onclick = () => { son('clic'); ouvrirAmbiances(); };
   $('p-ok').onclick = () => { son('clic'); fermerPop(); };
+}
+// choix de la musique de fond : chaque ambiance s'écoute dès qu'on la touche
+const AMBIANCES = ['auto', 'boite', 'piano', 'harpe', 'lofi', 'nuit', 'nature'];
+function ouvrirAmbiances() {
+  const noms = T('ambiances');
+  ouvrirPop(`<div class="ruban lav">${T('rAmbiance')}</div>
+    <p class="txt">${T('ambianceTxt')}</p>
+    <div class="liste-ambiances">${AMBIANCES.map(a => `<button class="ambiance ${reglages.ambiance === a ? 'choisie' : ''}" data-a="${a}"><b>${noms[a][0]}</b><span>${noms[a][1]}</span></button>`).join('')}</div>
+    <div class="boutons" style="margin-top:12px"><button class="btn vert" id="p-ok">${T('fermer')}</button></div>`, 'ambiance');
+  document.querySelectorAll('.ambiance').forEach(b => b.onclick = () => {
+    SON.init(); vibrer();
+    reglages.ambiance = b.dataset.a; if (!reglages.musique) reglages.musique = true;
+    sauverReglages(); SON.maj();
+    document.querySelectorAll('.ambiance').forEach(x => x.classList.toggle('choisie', x === b));
+    // à l'accueil, « automatique » fait entendre la Prairie
+    SON.ecouterAmbiance(b.dataset.a === 'auto' ? (ecranActuel === 'jeu' ? null : 'boite') : b.dataset.a);
+  });
+  $('p-ok').onclick = () => { son('clic'); fermerPop(); ouvrirReglages(); };
+}
+function finAmbiance() {
+  SON.ecouterAmbiance(null);
+  if (ecranActuel === 'jardin' || ecranActuel === 'intro') SON.musique(false);
 }
 $('voile').addEventListener('pointerdown', e => { if (e.target === $('voile') && POPS_LIBRES.includes(popOuverte)) fermerPop(); });
 
@@ -3073,7 +3188,10 @@ window.addEventListener('resize', () => { redimensionner(); if (ecranActuel === 
 appliquerLangue();
 redimensionner();
 preparerTitre();
+// le thème de l'accueil démarre tout de suite si l'appareil le permet, sinon au premier toucher
+try { SON.init(); } catch (e) { }
 montrer('titre');
+document.addEventListener('pointerdown', () => SON.init(), true);
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => { icones = {}; });
 requestAnimationFrame(boucle);
 

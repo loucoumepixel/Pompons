@@ -47,6 +47,8 @@ jobs:
         run: |
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity"\n            android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml
           grep -n "screenOrientation" android/app/src/main/AndroidManifest.xml
+          # sauvegarde Android (la progression suit le joueur sur un nouveau téléphone) : doit rester active
+          grep -n "allowBackup=\"true\"" android/app/src/main/AndroidManifest.xml || echo "::warning::sauvegarde Android désactivée"
 
       - name: Numéro de version (augmente à chaque construction)
         run: |

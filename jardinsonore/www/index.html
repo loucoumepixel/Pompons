@@ -3131,6 +3131,14 @@ function posNoeud(i) {
   return [x, y];
 }
 const DECOR_SOL = { touffe: 1, fleurette: 1, mare: 1 }; // posés à plat : dessinés avant tout ce qui se dresse
+const SCENES_CARTE = [
+  [['arbre', 'arbre', 'buisson'], ['buisson', 'fleurs'], ['arbre', 'fleurs'], ['pierre', 'buisson']], // Prairie : bosquets et haies fleuries
+  [['mare', 'roseaux', 'roseaux'], ['arbre', 'arbre'], ['roseaux', 'fleurs'], ['mare', 'roseaux']], // Ruisseau : mares et roseaux
+  [['pierre', 'pierre', 'arbre'], ['pierre', 'fleurs'], ['arbre', 'pierre', 'pierre']], // Rocaille : rochers et arbres d'automne
+  [['champi', 'champi', 'champi'], ['arbre', 'champi'], ['champi', 'fleurs']], // Champignons : ronds de champignons
+  [['mare', 'roseaux', 'lanterne'], ['lanterne', 'fleurs'], ['mare', 'roseaux', 'roseaux']], // Étang de Lune : mares éclairées
+  [['lanterne', 'arbre'], ['champi', 'lanterne'], ['arbre', 'fleurs', 'lanterne']], // Jardin des Étoiles : lanternes
+];
 const RAYON_DECOR = { mare: 1.05, arbre: 0.6, buisson: 0.5, pierre: 0.45, fleurs: 0.5, roseaux: 0.4, champi: 0.5, lanterne: 0.35 };
 function preparerDecorCarte() {
   carte.decor = [];
@@ -3139,24 +3147,28 @@ function preparerDecorCarte() {
     const y0 = finMondes() - (m + 1) * HAUT_MONDE, h = HAUT_MONDE + (m ? 0 : BAS_CARTE), poses = [];
     const noeuds = Array.from({ length: PAR_MONDE }, (_, j) => posNoeud(m * PAR_MONDE + j));
     surprisesCarte(m, poses);
-    const types = [['arbre', 'buisson', 'fleurs', 'pierre'], ['arbre', 'mare', 'fleurs', 'roseaux'], ['pierre', 'pierre', 'arbre', 'fleurs'], ['champi', 'champi', 'arbre', 'fleurs'], ['mare', 'roseaux', 'lanterne', 'fleurs'], ['lanterne', 'arbre', 'fleurs', 'champi']][m];
-    for (let k = 0; k < 90; k++) {
-      const t = types[Math.floor(r() * 4)], sc = 0.7 + r() * 0.6, rr = 34 * sc * RAYON_DECOR[t];
-      // on cherche une place libre : deux décors ne se chevauchent plus (une mare ne recouvre plus un arbre)
-      for (let essai = 0; essai < 10; essai++) {
-        const gauche = r() < 0.5, x = gauche ? 0.02 + r() * 0.18 : 0.8 + r() * 0.18, y = y0 + 60 + r() * (h - 120);
-        if (poses.some(p => Math.hypot((p.x - x) * L, (p.y - y) * (t === 'mare' || p.t === 'mare' ? 1.6 : 1)) < p.rr + rr + 6)) continue;
-        if (noeuds.some(([nx, ny]) => Math.hypot(x * W - nx, (y - ny) * 1.3) < rr + 44)) continue; // le chemin et ses fleurs restent dégagés
-        const d = { m, x, y, t, s: sc, k: Math.floor(r() * 9), rr };
-        poses.push(d); carte.decor.push(d);
-        // des roseaux et un nénuphar autour des mares, pour qu'elles appartiennent au paysage
-        if (t === 'mare' && r() < 0.7) carte.decor.push({ m, x: x + (r() < 0.5 ? -1 : 1) * 30 * sc / L, y: y - 6 * sc, t: 'roseaux', s: sc * 0.7, k: d.k, bord: true });
-        break;
-      }
+    // le décor est fait de petites scènes propres à chaque monde (un bosquet, une mare et ses roseaux, un cercle de champignons…),
+    // posées en alternance à gauche et à droite du chemin, bien espacées, et toujours entières à l'écran
+    const scenes = SCENES_CARTE[m];
+    let cote = r() < 0.5 ? 0 : 1, n = 0;
+    for (let cy = y0 + 70; cy < y0 + h - 50; cy += 115 + r() * 40, cote = 1 - cote, n++) {
+      const scene = scenes[(n + m) % scenes.length];
+      const ax = cote ? W - 34 - r() * 26 : 34 + r() * 26;
+      scene.forEach((t, k) => {
+        const sc = (k ? 0.75 : 0.95) + r() * 0.3, rr = 34 * sc * RAYON_DECOR[t];
+        for (let essai = 0; essai < 14; essai++) {
+          const px = clamp(ax + (k ? (r() - 0.5) * 90 : 0) + (cote ? -1 : 1) * k * 14, rr + 6, W - rr - 6), y = cy + (k ? (r() - 0.5) * 70 : 0);
+          if (poses.some(p => Math.hypot(p.x * W - px, (p.y - y) * (t === 'mare' || p.t === 'mare' ? 1.6 : 1)) < p.rr + rr + 4)) continue;
+          if (noeuds.some(([nx, ny]) => Math.hypot(px - nx, (y - ny) * 1.3) < rr + 44)) continue; // le chemin et ses fleurs restent dégagés
+          const d = { m, x: px / W, y, t, s: sc, k: Math.floor(r() * 9), rr };
+          poses.push(d); carte.decor.push(d);
+          break;
+        }
+      });
     }
-    for (let k = 0; k < 160; k++) {
-      const x = r(), y = y0 + r() * h, t = r() < 0.7 ? 'touffe' : 'fleurette';
-      if (poses.some(p => p.t === 'mare' && Math.hypot((p.x - x) * L, (p.y - y) * 1.8) < p.rr + 6)) continue; // pas d'herbe au milieu de l'eau
+    for (let k = 0; k < 110; k++) {
+      const x = r(), y = y0 + r() * h, t = r() < 0.8 ? 'touffe' : 'fleurette';
+      if (poses.some(p => p.t === 'mare' && Math.hypot((p.x - x) * W, (p.y - y) * 1.8) < p.rr + 6)) continue; // pas d'herbe au milieu de l'eau
       carte.decor.push({ m, x, y, t, s: 0.6 + r() * 0.8, k: Math.floor(r() * 9) });
     }
   }

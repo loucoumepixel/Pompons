@@ -342,7 +342,11 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
       var calme = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
       var voile = document.createElement("div");
       voile.setAttribute("aria-label", "Loucoume Interactive");
-      voile.style.cssText = "position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;cursor:pointer;" +
+      // Fond crème aussi sous le voile (et sous les barres d'Android) : sinon la couleur de fond du jeu
+      // apparaît un instant en bas de l'écran au démarrage.
+      var CREME = "#FFF6EF", racine = document.documentElement, avant = [racine.style.background, document.body.style.background];
+      racine.style.background = document.body.style.background = CREME;
+      voile.style.cssText = "position:fixed;inset:-60px 0;z-index:2147483000;display:grid;place-items:center;cursor:pointer;" +
         "background:radial-gradient(60% 50% at 15% 10%,rgba(255,201,163,.55),transparent 70%)," +
         "radial-gradient(60% 55% at 90% 95%,rgba(255,156,198,.5),transparent 70%)," +
         "linear-gradient(135deg,#FFF6EF,#FFEFF3 55%,#FCE9F4);-webkit-tap-highlight-color:transparent";
@@ -395,7 +399,7 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
         if (fini) return; fini = true;
         var s = voile.animate([{ opacity: 1 }, { opacity: 0 }], { duration: rapide ? 220 : 420, easing: "ease-in", fill: "forwards" });
         if (!rapide) svg.animate([{ transform: "scale(1)" }, { transform: "scale(1.04)" }], { duration: 420, easing: "ease-in", fill: "forwards" });
-        s.onfinish = function () { anims.forEach(function (x) { x.cancel(); }); voile.remove(); fin(); };
+        s.onfinish = function () { anims.forEach(function (x) { x.cancel(); }); voile.remove(); racine.style.background = avant[0]; document.body.style.background = avant[1]; fin(); };
       }
       voile.addEventListener("pointerdown", function () { terminer(true); });
 

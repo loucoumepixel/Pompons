@@ -132,7 +132,8 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 #barre-carte > * { pointer-events: auto; display: flex; align-items: center; gap: 6px; padding: 6px 18px 8px 10px; }
 #barre-carte img { width: 32px; height: 32px; }
 #barre-carte { gap: 7px; }
-#barre-carte .btn.petit { font-size: 16px; }
+#barre-carte .btn.petit { font-size: 16px; white-space: nowrap; }
+#barre-bas, #barre-carte { transform-origin: 50% 100%; }
 #barre-carte > * { padding: 6px 14px 8px 8px; }
 #b-jour { position: relative; background: linear-gradient(#ffc56b, #ff9f43); box-shadow: 0 5px 0 #d9782a; }
 #b-jour.nouveau::after { content: ''; position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #ff5f8f; border: 3px solid #fff; animation: pastille 1.6s ease-in-out infinite; }
@@ -2362,6 +2363,7 @@ function majHud() {
     };
     p.appendChild(b);
   }
+  ajusterBarre('barre-bas');
 }
 // glisser depuis le panier vers le jardin
 window.addEventListener('pointermove', ev => { const d = J.drag; if (d && d.panier && ev.pointerId === d.id) { d.x = ev.clientX; d.y = ev.clientY; } });
@@ -3191,7 +3193,7 @@ function ouvrirCarte(focus) {
   $('nb-dorees').textContent = nbDorees();
   $('ic-fleur').src = icone('fleur0', 40); $('ic-doree').src = icone('doree', 40);
   $('ic-jardin').src = icone('fleur5', 40); $('lab-jardin').textContent = T('jardin'); $('lab-defis').textContent = T('defis');
-  majBoutonJour();
+  majBoutonJour(); ajusterBarre('barre-carte');
   particules = [];
 }
 function dessinerCarte(dt) {
@@ -3498,7 +3500,18 @@ function boucle(now) {
   } catch (e) { console.error(e); }
   requestAnimationFrame(boucle);
 }
-window.addEventListener('resize', () => { redimensionner(); if (ecranActuel === 'jardin') mettreEnPageJardin(); });
+// rangée du bas : si elle dépasse l'écran (petit téléphone, langue longue, 4 cases au panier), on la réduit d'un bloc
+function ajusterBarre(id) {
+  const b = $(id); if (!b) return;
+  b.style.transform = '';
+  const enfants = [...b.children].filter(e => e.offsetWidth);
+  const gap = parseFloat(getComputedStyle(b).columnGap) || 0;
+  const w = enfants.reduce((t, e) => t + e.offsetWidth, 0) + gap * Math.max(0, enfants.length - 1);
+  const k = Math.min(1, (innerWidth - 16) / w);
+  if (k < 1) b.style.transform = 'scale(' + k.toFixed(3) + ')';
+}
+function ajusterBarres() { ajusterBarre('barre-bas'); ajusterBarre('barre-carte'); }
+window.addEventListener('resize', () => { ajusterBarres(); redimensionner(); if (ecranActuel === 'jardin') mettreEnPageJardin(); });
 appliquerLangue();
 redimensionner();
 preparerTitre();

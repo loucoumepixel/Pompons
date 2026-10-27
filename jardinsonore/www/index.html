@@ -1814,7 +1814,9 @@ function recalculer(silencieux) {
 function concertAuto(n, essais = 0) {
   setTimeout(() => {
     if (J.n !== n || !J.sim.gagne || J.concert || ecranActuel !== 'jeu') return;
-    if (J.drag || popOuverte) { if (essais < 40) concertAuto(n, essais + 1); return; } // le doigt tient encore une plante : on attend qu'il la lâche
+    const d = J.drag;
+    if (d && d.panier && tJeu - d.t0 > 1.2) J.drag = null; // un glisser du panier dont le « lâcher » s'est perdu ne bloque rien
+    if ((J.drag && J.drag.bouge) || popOuverte) { concertAuto(n, essais + 1); return; } // le doigt tient encore une plante : on attend qu'il la lâche
     lancerConcert();
   }, essais ? 150 : 420);
 }
@@ -2277,6 +2279,7 @@ function poser(i, t, sansMemo) {
 }
 cv.addEventListener('pointerdown', ev => {
   if (ecranActuel !== 'jeu' || popOuverte) return;
+  if (J.drag && J.drag.panier && ev.pointerId !== J.drag.id) J.drag = null; // un glisser du panier perdu en route
   SON.init();
   const x = ev.clientX, y = ev.clientY;
   if (!J.concert && Math.hypot(x - J.melo.x, y - J.melo.y) < 38) { toucherMelo(); return; }
@@ -2366,18 +2369,21 @@ function majHud() {
     b.className = 'case-panier' + cls + (choisie ? ' sel' : '') + (n <= 0 ? ' vide' : '');
     b.innerHTML = `<img src="${icone(ic, 64)}" alt=""><span class="nb">${n}</span><span class="nom">${nom}</span>`;
     b.onpointerdown = ev => {
-      ev.preventDefault(); SON.init(); J.sel = t; son('clic'); majHud();
-      if (n > 0 && !J.concert) { J.drag = { de: -1, t: t === 'f' ? 1 : 3, x: ev.clientX, y: ev.clientY, x0: ev.clientX, y0: ev.clientY, bouge: true, id: ev.pointerId, panier: true }; }
+      ev.preventDefault(); SON.init(); J.sel = t; son('clic');
+      // on ne reconstruit pas le panier sous le doigt : sur téléphone, le bouton retiré emporterait le « lâcher » avec lui
+      for (const autre of p.children) autre.classList.toggle('sel', autre === b);
+      if (n > 0 && !J.concert) { J.drag = { de: -1, t: t === 'f' ? 1 : 3, x: ev.clientX, y: ev.clientY, x0: ev.clientX, y0: ev.clientY, bouge: true, id: ev.pointerId, panier: true, t0: tJeu }; }
     };
     p.appendChild(b);
   }
   ajusterBarre('barre-bas');
 }
 // glisser depuis le panier vers le jardin
+window.addEventListener('pointercancel', ev => { const d = J.drag; if (d && d.panier && ev.pointerId === d.id) J.drag = null; });
 window.addEventListener('pointermove', ev => { const d = J.drag; if (d && d.panier && ev.pointerId === d.id) { d.x = ev.clientX; d.y = ev.clientY; } });
 window.addEventListener('pointerup', ev => {
   const d = J.drag; if (!d || !d.panier || ev.pointerId !== d.id) return;
-  J.drag = null;
+  J.drag = null; majHud();
   if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 20) return; // simple sélection
   const c = caseSous(d.x, d.y - J.s * 0.3);
   if (libreJoueur(c)) poser(c, d.t); else son('retire');

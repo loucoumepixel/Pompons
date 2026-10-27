@@ -21,6 +21,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #9fd8ff; fon
 .ecran.on { display: block; }
 .ecran.on > * { pointer-events: auto; }
 button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor: pointer; color: #fff; }
+a.btn { display: inline-block; font-family: 'Fredoka', sans-serif; font-weight: 600; color: #fff; text-decoration: none; -webkit-tap-highlight-color: transparent; }
 .btn { font-size: 24px; padding: 11px 34px 13px; border-radius: 999px; background: linear-gradient(#ffa6c9, #ff6fa3); box-shadow: 0 5px 0 #d84f86, 0 10px 18px rgba(200,70,130,.28); text-shadow: 0 2px 0 rgba(170,40,100,.3); transition: transform .08s; letter-spacing: .3px; }
 .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d84f86, 0 5px 10px rgba(200,70,130,.3); }
 .btn.vert { background: linear-gradient(#8ee6a8, #3fbf72); box-shadow: 0 5px 0 #2a9a56, 0 10px 18px rgba(50,160,90,.3); text-shadow: 0 2px 0 rgba(30,120,70,.3); }
@@ -102,9 +103,9 @@ button { font-family: 'Fredoka', sans-serif; font-weight: 600; border: 0; cursor
 #fondu.on { opacity: 1; }
 
 /* fenêtres */
-#voile { position: fixed; inset: 0; background: rgba(40,40,80,.32); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+#voile { position: fixed; inset: 0; background: rgba(40,40,80,.32); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; overflow-y: auto; overscroll-behavior: contain; }
 #voile.on { display: flex; }
-.carte-pop { position: relative; width: min(100%, 370px); background: linear-gradient(#fff, #f6fff4); border-radius: 30px; padding: 46px 22px 22px; text-align: center; box-shadow: 0 20px 50px rgba(40,50,90,.35); animation: entre .4s cubic-bezier(.2,1.4,.4,1); border: 4px solid #fff; }
+.carte-pop { position: relative; width: min(100%, 370px); background: linear-gradient(#fff, #f6fff4); border-radius: 30px; padding: 46px 22px 22px; text-align: center; box-shadow: 0 20px 50px rgba(40,50,90,.35); animation: entre .4s cubic-bezier(.2,1.4,.4,1); border: 4px solid #fff; margin: auto; flex-shrink: 0; }
 @keyframes entre { from { transform: scale(.6) translateY(30px); opacity: 0 } to { transform: scale(1); opacity: 1 } }
 .ruban { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); font-family: 'Fredoka'; font-weight: 600; font-size: 25px; color: #fff; padding: 8px 28px 10px; border-radius: 16px; background: linear-gradient(#8ee6a8, #3fbf72); box-shadow: 0 6px 0 #2a9a56; white-space: nowrap; }
 .ruban.lav { background: linear-gradient(#cdb8ff, #9575ee); box-shadow: 0 6px 0 #7457cc; }
@@ -1501,6 +1502,7 @@ const TEXTES = {
     mondeTexte: (a, b) => a + ' est en fleurs. Direction ' + b + ' !',
     suivant: 'Suivant', reecouter: 'Réécouter', carte: 'Carte', fermer: 'Fermer',
     reglages: 'Réglages', rMusique: 'Musique et nature', rSons: 'Notes et effets', rVib: 'Vibrations', rLangue: 'Langue', langueNom: 'Français',
+    rAvis: 'Ton avis', bAvis: 'Écrire', avisSujet: 'Jardin Sonore : mon avis',
     credits: 'Jardin Sonore · musique générée en direct<br>Polices Fredoka et Nunito (licence OFL)',
     cDoree: 'Une note dorée ! Fais passer la mélodie dessus pour la gagner. C’est un bonus : rien ne t’oblige.',
     reserve: 'Réserve', cReserve: n => 'Ta réserve de feuilles dorées est là (' + n + ') : sers-t’en pour attraper la note dorée !',
@@ -1567,6 +1569,7 @@ const TEXTES = {
     mondeTexte: (a, b) => a + ' is in bloom. Next stop: ' + b + '!',
     suivant: 'Next', reecouter: 'Replay', carte: 'Map', fermer: 'Close',
     reglages: 'Settings', rMusique: 'Music and nature', rSons: 'Notes and effects', rVib: 'Vibration', rLangue: 'Language', langueNom: 'English',
+    rAvis: 'Your feedback', bAvis: 'Write', avisSujet: 'Jardin Sonore: my feedback',
     credits: 'Jardin Sonore · music generated live<br>Fonts Fredoka and Nunito (OFL license)',
     cDoree: 'A golden note! Lead the melody over it to win it. It’s a bonus: no pressure.',
     reserve: 'Reserve', cReserve: n => 'Your golden leaf reserve is here (' + n + '): use it to catch the golden note!',
@@ -3428,6 +3431,7 @@ function popVictoire() {
     </div>`, 'victoire');
   son('fleur');
   if (n === AVIS_NIVEAU - 1) demanderAvis('niveau15');
+  if (n === PAR_MONDE * 2 - 1) demanderAvis('monde2');
   J.nouvelles = []; if (J.resGagnee) SAUVE.ecrire('reserveVue', true); J.resGagnee = 0; J.resUtilisee = 0;
   if ($('p-fin')) $('p-fin').onclick = () => { son('clic'); fermerPop(); fondu(() => lancerFin(() => ouvrirCarte(n))); };
   if ($('p-suivant')) $('p-suivant').onclick = () => { son('clic'); fermerPop(); fondu(() => { if (dernierDuMonde) ouvrirCarte(n + 1); else chargerNiveau(n + 1); }); };
@@ -3445,6 +3449,7 @@ function ouvrirReglages() {
     <div class="reglage">${T('rIntro')}<button class="btn petit lav" id="r-intro">▶</button></div>
     ${faits[NB_NIVEAUX - 1] ? `<div class="reglage">${T('rFin')}<button class="btn petit lav" id="r-fin">▶</button></div>` : ''}
     <div class="reglage">${T('rLangue')}<button class="btn petit lav" id="r-langue">${TEXTES[langue === 'fr' ? 'en' : 'fr'].langueNom}</button></div>
+    <div class="reglage">${T('rAvis')}<a class="btn petit lav" id="r-avis" href="${lienAvis()}">${T('bAvis')}</a></div>
     <div class="boutons" style="margin-top:16px"><button class="btn vert" id="p-ok">${T('fermer')}</button></div>
     <p class="credits">${T('credits')}${TESTEURS.length ? '<br>' + T('merciCredits') + ' ' + TESTEURS.map(echapper).join(', ') + ' ♥' : ''}</p>`, 'reglages');
   for (const k of ['musique', 'sons', 'vibrations', 'defi']) $('r-' + k).onclick = e => {
@@ -3460,6 +3465,7 @@ function ouvrirReglages() {
   if ($('r-fin')) $('r-fin').onclick = () => { SON.init(); son('clic'); fermerPop(); fondu(() => lancerFin(() => ouvrirCarte(NB_NIVEAUX - 1))); };
   $('r-intro').onclick = () => { SON.init(); son('clic'); fermerPop(); const ici = ecranActuel, n = J.n; fondu(() => lancerIntro(() => { if (ici === 'jeu') { montrer('jeu'); chargerNiveau(n); } else if (ici === 'carte') ouvrirCarte(); else if (ici === 'jardin') ouvrirJardin(); else montrer('titre'); })); };
   $('r-ambiance').onclick = () => { son('clic'); ouvrirAmbiances(); };
+  $('r-avis').onclick = () => son('clic');
   $('p-ok').onclick = () => { son('clic'); fermerPop(); };
 }
 // choix de la musique de fond : chaque ambiance s'écoute dès qu'on la touche
@@ -3890,7 +3896,7 @@ $('b-partager-jardin').onclick = () => { partagerJardin(); };
 
 'use strict';
 // ===== Demande d'avis : la petite fenêtre officielle de Google Play (« Noter Jardin Sonore »), sans quitter le jeu =====
-// Deux beaux moments seulement, une fois chacun : la première victoire du niveau 15, et la fin de la grande floraison.
+// Trois beaux moments seulement, une fois chacun : la première victoire du niveau 15, la fin du monde 2 (niveau 50) et la fin de la grande floraison.
 // Google décide lui-même s'il montre la fenêtre (il limite le nombre de demandes) ; sur le web, rien ne se passe.
 const AVIS_NIVEAU = 15;
 function demanderAvis(moment) {
@@ -3899,6 +3905,9 @@ function demanderAvis(moment) {
   SAUVE.ecrire('avis-' + moment, true);
   setTimeout(() => { try { R.requestReview().catch(() => { }); } catch (e) { } }, 1200);
 }
+// ===== « Donner mon avis » : un e-mail tout prêt vers le studio, depuis les réglages =====
+const AVIS_MAIL = 'loucoumeinteractive@gmail.com';
+function lienAvis() { return 'mailto:' + AVIS_MAIL + '?subject=' + encodeURIComponent(T('avisSujet')); }
 
 'use strict';
 // ===== La grande floraison : la fin du jeu, quand les 150 mélodies ont éclos =====

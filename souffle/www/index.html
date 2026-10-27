@@ -163,7 +163,7 @@ body.nuit #hud .bas { color: #f6ecd9; --encre-douce: #e6d8c0; }
 <div id="controle" class="ecran"><div class="page">
   <h2>Comment veux-tu souffler ?</h2>
   <div class="choix" id="choix">
-    <button class="trace" id="b-micro">Souffler dans le micro<small>Le son n'est jamais enregistré : le jeu écoute seulement la force du souffle.</small></button>
+    <button class="trace" id="b-micro">Souffler sur l'écran<small>Comme sur un vrai pissenlit. Le son n'est jamais enregistré : le jeu écoute seulement la force du souffle.</small></button>
     <button class="trace" id="b-doigt">Maintenir le doigt<small>Plus tu maintiens, plus Plume monte. Tu pourras changer dans les réglages.</small></button>
   </div>
   <div class="calib" id="calib">
@@ -226,8 +226,8 @@ body.nuit #hud .bas { color: #f6ecd9; --encre-douce: #e6d8c0; }
   <h3>Réglages</h3>
   <div class="rangee">Sons <span class="opts" data-r="son"><button data-v="1">oui</button><button data-v="0">non</button></span></div>
   <div class="rangee">Musique <span class="opts" data-r="musique"><button data-v="1">oui</button><button data-v="0">non</button></span></div>
-  <div class="rangee">Souffle <span class="opts" data-r="controle"><button data-v="micro">micro</button><button data-v="doigt">doigt</button></span></div>
-  <div style="text-align:center;margin-top:12px"><button class="lien" id="b-recalib">régler le micro</button></div>
+  <div class="rangee">Jouer <span class="opts" data-r="controle"><button data-v="micro">en soufflant</button><button data-v="doigt">au doigt</button></span></div>
+  <div style="text-align:center;margin-top:12px"><button class="lien" id="b-recalib">régler le souffle</button></div>
   <div class="actions" style="display:flex;justify-content:center;margin-top:14px"><button class="trace" id="b-reglages-fermer">Fermer</button></div>
   <div class="credit">Souffle · un jeu Loucoume Interactive</div>
 </div></div>
@@ -1720,13 +1720,14 @@ var ENTREE = (function () {
     pic = ouvert ? Math.max(pic, m.grave) : -140;
     if (ouvert && dure < 0.4 && m.grave < pic - 12) { confiance = 0; ouvert = false; dure = 0; return 0; }
     if (!ouvert || !oui) return 0;
-    return borne((m.grave - plancher - c.marge) / Math.max(8, c.max - plancher - c.marge) * 1.15, 0, 1);
+    return borne((m.grave - plancher - c.marge) / Math.max(8, c.max - plancher - c.marge) / 0.72, 0, 1); // plein souffle atteint sans forcer
   }
 
   function maj(dt) {
     var c = REGLAGES.calib, cible = 0;
     if (actif && c && c.v === 2) { var m = lireSpectre(); dernier = m; cible = etape(m, c, dt); }
-    niveau += (cible - niveau) * Math.min(1, dt * (cible > niveau ? 18 : 7));
+    // souffle porteur : quand on reprend son air, Plume garde un peu d'élan au lieu de retomber d'un coup
+    niveau += (cible - niveau) * Math.min(1, dt * (cible > niveau ? 18 : 3));
   }
 
   // calibrage : une seconde de silence, puis deux secondes de souffle fort ; on retient le profil du souffle de CE téléphone
@@ -1774,7 +1775,7 @@ var ENTREE = (function () {
 var JEU = (function () {
   var cv, c, fond, W = 0, H = 0, dpr = 1, s = 1, ox = 0, oy = 0;
   var I = 0, niv = null, M = null, etat = 'attente', p = null, acc = 0, t = 0, minut = 0, essais = 1;
-  var masqueAvant = 0, astuce = null, legende = null; // legende : l'heure qui change, écrite au crayon dans le ciel
+  var masqueAvant = 0, astuce = null, legende = null, souffleCumul = 0; // legende : l'heure qui change, écrite au crayon dans le ciel
   var _x; // astuce : la première goutte attrapée explique à quoi servent les couleurs
   var cam = { z: 1, x: 180, y: 320 }, frolés = {}, volutes = [], reperes = [], fleurs = [], floraison = [], parts = [], chutes = [], aigrettes = [], trace = [], aide = null, voirAide = false, prisesVues = 0, tempsGagne = 0;
 
@@ -1982,6 +1983,11 @@ var JEU = (function () {
     t += dt;
     ENTREE.maj(dt);
     var b = ENTREE.lire();
+    // souffler longtemps fatigue : après une minute et demie de souffle, on rappelle (une seule fois) que le doigt marche aussi
+    if (etat === 'vol' && ENTREE.niveauMicro() > 0.1 && !SAUVE.lire('astucePause', false)) {
+      souffleCumul += dt;
+      if (souffleCumul > 90) { SAUVE.ecrire('astucePause', true); ECRANS.toast('Besoin de reprendre ton souffle ? Pose le doigt sur l\'écran : ça marche aussi, à tout moment.', 6500); }
+    }
     if (etat === 'attente') {
       if (b > 0.12) { etat = 'vol'; SON.graine(); }
     }
@@ -2154,7 +2160,7 @@ var JEU = (function () {
       c.font = '600 19px Caveat, cursive'; c.fillStyle = 'rgba(' + ENC + ',' + (etat === 'attente' ? 0.85 : 0.35) + ')';
       if (M.sombre) { c.shadowColor = 'rgba(10,10,30,.8)'; c.shadowBlur = 5; }
       niv.notes.forEach(function (n) {
-        var tx = n.t === 'souffler' ? (REGLAGES.controle === 'micro' ? 'souffle doucement dans le micro' : 'maintiens le doigt pour souffler') : n.t;
+        var tx = n.t === 'souffler' ? (REGLAGES.controle === 'micro' ? 'souffle doucement sur l\'écran' : 'maintiens le doigt pour souffler') : n.t;
         c.fillText(tx, n.x, n.y);
         var w = c.measureText(tx).width; c.strokeStyle = c.fillStyle; c.lineWidth = 1;
         c.beginPath(); for (var u = 0; u <= w; u += 6) c[u ? 'lineTo' : 'moveTo'](n.x + u, n.y + 5 + Math.sin(u * 0.4) * 1.2); c.stroke();
@@ -2509,17 +2515,17 @@ var ECRANS = (function () {
       var silence, reglage;
       return ENTREE.calibrer('silence', function (e) { barre.style.transform = 'scaleX(' + borne((e + 115) / 80, 0, 1) + ')'; }).then(function (m) {
         silence = m; var ref = Math.min.apply(null, m.map(function (x) { return x.grave; }));
-        txt.textContent = 'Maintenant, souffle fort sur le micro !'; note.textContent = 'Comme pour éteindre une bougie.';
+        txt.textContent = 'Maintenant, souffle fort sur l\'écran !'; note.textContent = 'Comme sur un pissenlit.';
         return ENTREE.calibrer('souffle', function (e) { barre.style.transform = 'scaleX(' + borne((e - ref) / 50, 0, 1) + ')'; });
       }).then(function (souffle) {
         reglage = ENTREE.regler(silence, souffle);
         if (!reglage) {
-          txt.textContent = "Je n'ai presque rien entendu."; note.textContent = 'Approche le téléphone de ta bouche et réessaie, ou joue au doigt.';
+          txt.textContent = "Je n'ai presque rien entendu."; note.textContent = 'Rapproche l\'écran de ton visage et réessaie, ou joue au doigt.';
           $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = 'Réessayer'; $('#b-calib-ok').onclick = function () { calibrage(apres); };
           return;
         }
         REGLAGES.calib = reglage; sauverReglages(); ENTREE.remettre();
-        txt.textContent = "C'est réglé !"; note.textContent = 'Souffle doucement pour planer, plus fort pour monter. Le jeu reconnaît ton souffle : les voix, la musique et les petits bruits sont ignorés.'; barre.style.transform = 'scaleX(1)';
+        txt.textContent = "C'est réglé !"; note.textContent = 'Souffle doucement pour planer, plus fort pour monter. Les voix et la musique sont ignorées. Besoin d\'une pause ? Ton doigt marche aussi, à tout moment.'; barre.style.transform = 'scaleX(1)';
         $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = "C'est parti"; $('#b-calib-ok').onclick = function () { SON.clic(); apres(); };
       });
     }).catch(function () {

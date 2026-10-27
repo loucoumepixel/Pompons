@@ -1,0 +1,9 @@
+{
+  "appId": "fr.louc.souffle",
+  "appName": "Souffle",
+  "webDir": "www",
+  "backgroundColor": "#FFF6EF",
+  "android": {
+    "allowMixedContent": false
+  }
+}

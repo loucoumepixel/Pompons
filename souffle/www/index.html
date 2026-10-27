@@ -1637,17 +1637,43 @@ var SON = (function () {
     musique: musique, appliquer: appliquer, contexte: function () { return ctx; } };
 })();
 
-// Souffle : le souffle du joueur, au doigt (maintenir) ou au micro (volume des basses fréquences, rien n'est enregistré).
+// Souffle : le souffle du joueur, au doigt (maintenir) ou au micro (rien n'est enregistré).
+// Au micro, on ne mesure pas un simple volume : un souffle sur le micro est un grondement très grave,
+// sans notes (pas d'harmoniques comme la voix ou la musique) et qui dure (pas un claquement).
+// Chaque image passe ces trois tests, et le bruit de la pièce est suivi en continu.
 var ENTREE = (function () {
-  var doigt = false, flux = null, analyse = null, donnees = null, brut = 0, niveau = 0, actif = false;
+  var doigt = false, flux = null, analyse = null, db = null, niveau = 0, actif = false;
+  var fond = null, confiance = 0, ouvert = false, dure = 0, pic = -140, recents = [], spectreFond = null, spectreVu = null, dernier = null;
 
-  function energie() { // moyenne des basses fréquences (le souffle sur le micro y met beaucoup d'énergie)
-    if (!analyse) return 0;
-    analyse.getByteFrequencyData(donnees);
-    var sr = SON.contexte().sampleRate, bin = sr / analyse.fftSize, n = Math.max(3, Math.round(450 / bin)), s = 0;
-    for (var i = 1; i <= n; i++) s += donnees[i];
-    return s / n;
+  function puissance(d) { return Math.pow(10, d / 10); }
+  function moyenneDb(d, a, b) { var s = 0; for (var i = a; i <= b; i++) s += puissance(d[i]); return 10 * Math.log10(s / (b - a + 1) + 1e-12); }
+
+  // trois mesures sur un spectre en dB : niveau des graves, pente graves/médiums, présence de notes
+  function mesurer(d, binHz) {
+    var g1 = Math.max(1, Math.round(60 / binHz)), g2 = Math.round(320 / binHz);
+    var m1 = Math.round(900 / binHz), m2 = Math.round(3600 / binHz);
+    var grave = moyenneDb(d, g1, g2), medium = moyenneDb(d, m1, m2);
+    // notes : saillie moyenne des pics locaux entre 90 et 1800 Hz (la voix et la musique en sont pleines, le souffle non)
+    var k = Math.max(2, Math.round(55 / binHz)), a = Math.round(90 / binHz), b = Math.round(1800 / binHz), pics = 0, n = 0;
+    for (var i = a; i <= b; i++) {
+      var v = d[i], local = (d[i - k] + d[i + k]) / 2;
+      // un pic déjà là dans le bruit de la pièce (ronron d'un frigo, d'un ventilateur) ne compte pas
+      var neuf = !spectreFond || v > spectreFond[i] + 8;
+      if (neuf && v >= d[i - 1] && v >= d[i + 1] && v - local > 9 && v > medium + 6) pics += Math.min(30, v - local);
+      n++;
+    }
+    spectreVu = d;
+    return { grave: grave, pente: grave - medium, notes: pics / n };
   }
+
+  function lireSpectre() {
+    if (!analyse) return null;
+    analyse.getFloatFrequencyData(db);
+    for (var i = 0; i < db.length; i++) if (!isFinite(db[i])) db[i] = -140;
+    return mesurer(db, SON.contexte().sampleRate / analyse.fftSize);
+  }
+  function energie() { var m = lireSpectre(); return m ? m.grave : -140; }
+
   function demarrerMicro() {
     SON.demarrer();
     var ctx = SON.contexte();
@@ -1655,38 +1681,92 @@ var ENTREE = (function () {
     if (actif) return Promise.resolve();
     return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (f) {
       flux = f; var src = ctx.createMediaStreamSource(f);
-      analyse = ctx.createAnalyser(); analyse.fftSize = 1024; analyse.smoothingTimeConstant = 0.3; analyse.minDecibels = -95; analyse.maxDecibels = -15;
-      donnees = new Uint8Array(analyse.frequencyBinCount); src.connect(analyse); actif = true;
+      analyse = ctx.createAnalyser(); analyse.fftSize = 2048; analyse.smoothingTimeConstant = 0.25;
+      db = new Float32Array(analyse.frequencyBinCount); src.connect(analyse); actif = true; fond = null; confiance = 0; ouvert = false;
     });
   }
   function arreterMicro() { if (flux) flux.getTracks().forEach(function (t) { t.stop(); }); flux = null; analyse = null; actif = false; }
 
-  function maj(dt) {
-    var c = REGLAGES.calib;
-    brut = actif ? energie() : 0;
-    var cible = 0;
-    if (actif && c) cible = borne((brut - c.plancher - 6) / Math.max(12, c.max - c.plancher - 6) * 1.15, 0, 1);
-    niveau += (cible - niveau) * Math.min(1, dt * (cible > niveau ? 14 : 7));
+  // une image ressemble-t-elle à un souffle ? (c = calibrage)
+  // strict pour démarrer, plus souple pour continuer (un souffle tenu vacille un peu)
+  function estSouffle(m, c, plancher, tenu) {
+    var r = tenu ? 1 : 0;
+    return m.grave > plancher + c.marge - 4 * r && m.pente > c.pente - 4 * r && m.notes < c.notes * (1 + 0.6 * r);
   }
-  // calibrage : une seconde de silence, puis deux secondes de souffle fort
-  function calibrer(etape, rappel) {
-    var mesures = [], t0 = performance.now(), duree = etape === 'silence' ? 1100 : 2200;
+
+  // pas-à-pas d'un détecteur, partagé par le jeu et les tests : renvoie la cible 0..1
+  function etape(m, c, dt) {
+    if (fond === null) fond = c.plancher;
+    var plancher = Math.max(c.plancher, fond);
+    // pour démarrer, le souffle doit aussi dépasser le plus calme des 3 dernières secondes : un bruit continu ne démarre jamais
+    recents.push(m.grave); if (recents.length > 3 / Math.max(dt, 1 / 120)) recents.shift();
+    var calme = recents[0]; for (var i = 1; i < recents.length; i++) if (recents[i] < calme) calme = recents[i];
+    var oui = estSouffle(m, c, ouvert ? plancher : Math.max(plancher, calme), ouvert);
+    // le bruit de la pièce (télé, voix, ventilateur) relève le plancher ; il ne bouge pas pendant un souffle
+    if (!oui) {
+      fond += (m.grave - fond) * Math.min(1, dt * (m.grave > fond ? 1.5 : 2.5));
+      if (spectreVu) {
+        if (!spectreFond || spectreFond.length !== spectreVu.length) spectreFond = Float32Array.from(spectreVu);
+        else for (var j = 0; j < spectreVu.length; j++) spectreFond[j] += (spectreVu[j] - spectreFond[j]) * Math.min(1, dt * 1.5);
+      }
+    }
+    // un souffle dure : il faut ~120 ms de souffle pour démarrer, un claquement ne passe pas
+    confiance = borne(confiance + (oui ? dt / 0.12 : -dt / 0.16), 0, 1);
+    if (confiance >= 1) ouvert = true; else if (confiance <= 0) ouvert = false;
+    // personne ne souffle 15 secondes d'affilée : un grondement qui ne s'arrête pas (ventilateur, moteur) devient le bruit de fond
+    dure = ouvert ? dure + dt : 0;
+    if (dure > 15) { fond = m.grave; confiance = 0; ouvert = false; dure = 0; return 0; }
+    // un choc (porte, objet posé) monte d'un coup puis s'effondre ; un souffle tient
+    pic = ouvert ? Math.max(pic, m.grave) : -140;
+    if (ouvert && dure < 0.4 && m.grave < pic - 12) { confiance = 0; ouvert = false; dure = 0; return 0; }
+    if (!ouvert || !oui) return 0;
+    return borne((m.grave - plancher - c.marge) / Math.max(8, c.max - plancher - c.marge) * 1.15, 0, 1);
+  }
+
+  function maj(dt) {
+    var c = REGLAGES.calib, cible = 0;
+    if (actif && c && c.v === 2) { var m = lireSpectre(); dernier = m; cible = etape(m, c, dt); }
+    niveau += (cible - niveau) * Math.min(1, dt * (cible > niveau ? 18 : 7));
+  }
+
+  // calibrage : une seconde de silence, puis deux secondes de souffle fort ; on retient le profil du souffle de CE téléphone
+  function calibrer(etapeNom, rappel) {
+    var mesures = [], t0 = performance.now(), duree = etapeNom === 'silence' ? 1100 : 2200;
     return new Promise(function (ok) {
       (function tour() {
-        var e = energie(); mesures.push(e); if (rappel) rappel(e, (performance.now() - t0) / duree);
+        var m = lireSpectre() || { grave: -140, pente: 0, notes: 0 }; mesures.push(m);
+        if (rappel) rappel(m.grave, (performance.now() - t0) / duree);
         if (performance.now() - t0 < duree) requestAnimationFrame(tour);
-        else { mesures.sort(function (a, b) { return a - b; }); ok(etape === 'silence' ? mesures[Math.floor(mesures.length * 0.7)] : mesures[Math.floor(mesures.length * 0.85)]); }
+        else ok(mesures);
       })();
     });
   }
+  function quantile(t, q) { t = t.slice().sort(function (a, b) { return a - b; }); return t[Math.min(t.length - 1, Math.floor(t.length * q))]; }
+  // à partir des mesures de silence et de souffle : le réglage, ou null si le souffle ne se distingue pas assez
+  function regler(silence, souffle) {
+    var plancher = quantile(silence.map(function (m) { return m.grave; }), 0.8);
+    var forts = souffle.filter(function (m) { return m.grave > plancher + 10; });
+    if (forts.length < souffle.length * 0.25) return null;
+    var max = quantile(forts.map(function (m) { return m.grave; }), 0.8);
+    var pente = quantile(forts.map(function (m) { return m.pente; }), 0.3);
+    var notes = quantile(forts.map(function (m) { return m.notes; }), 0.8);
+    return {
+      v: 2, plancher: Math.round(plancher), max: Math.round(max),
+      marge: Math.round(borne((max - plancher) * 0.12, 5, 9)),
+      pente: Math.round(borne(pente - 7, 4, 24)),
+      notes: +borne(notes * 1.25 + 0.1, 0.32, 1.2).toFixed(2)
+    };
+  }
 
   return {
-    maj: maj, demarrerMicro: demarrerMicro, arreterMicro: arreterMicro, calibrer: calibrer, energie: energie,
+    maj: maj, demarrerMicro: demarrerMicro, arreterMicro: arreterMicro, calibrer: calibrer, regler: regler, energie: energie,
+    mesurer: mesurer, etape: etape, remettre: function () { fond = null; confiance = 0; ouvert = false; dure = 0; pic = -140; recents = []; spectreFond = null; },
     appui: function (v) { doigt = v; },
     lire: function () { return Math.max(doigt ? 1 : 0, niveau); },
     doigt: function () { return doigt; },
     micro: function () { return actif; },
-    niveauMicro: function () { return niveau; }
+    niveauMicro: function () { return niveau; },
+    derniereMesure: function () { return dernier; }
   };
 })();
 
@@ -2424,19 +2504,22 @@ var ECRANS = (function () {
     $('#choix').style.display = 'none'; $('#calib').classList.add('on'); $('#b-calib-ok').style.display = 'none';
     var txt = $('#calib-texte'), note = $('#calib-note'), barre = $('#calib-barre');
     txt.textContent = 'Reste silencieux une seconde…'; note.textContent = 'Le jeu écoute le bruit de la pièce.';
+    ENTREE.remettre();
     ENTREE.demarrerMicro().then(function () {
-      var plancher;
-      return ENTREE.calibrer('silence', function (e) { barre.style.transform = 'scaleX(' + Math.min(1, e / 160) + ')'; }).then(function (p) {
-        plancher = p; txt.textContent = 'Maintenant, souffle fort sur le micro !'; note.textContent = 'Comme pour éteindre une bougie.';
-        return ENTREE.calibrer('souffle', function (e) { barre.style.transform = 'scaleX(' + Math.min(1, Math.max(0, e - plancher) / 90) + ')'; });
-      }).then(function (max) {
-        if (max - plancher < 14) {
+      var silence, reglage;
+      return ENTREE.calibrer('silence', function (e) { barre.style.transform = 'scaleX(' + borne((e + 115) / 80, 0, 1) + ')'; }).then(function (m) {
+        silence = m; var ref = Math.min.apply(null, m.map(function (x) { return x.grave; }));
+        txt.textContent = 'Maintenant, souffle fort sur le micro !'; note.textContent = 'Comme pour éteindre une bougie.';
+        return ENTREE.calibrer('souffle', function (e) { barre.style.transform = 'scaleX(' + borne((e - ref) / 50, 0, 1) + ')'; });
+      }).then(function (souffle) {
+        reglage = ENTREE.regler(silence, souffle);
+        if (!reglage) {
           txt.textContent = "Je n'ai presque rien entendu."; note.textContent = 'Approche le téléphone de ta bouche et réessaie, ou joue au doigt.';
           $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = 'Réessayer'; $('#b-calib-ok').onclick = function () { calibrage(apres); };
           return;
         }
-        REGLAGES.calib = { plancher: Math.round(plancher), max: Math.round(max) }; sauverReglages();
-        txt.textContent = "C'est réglé !"; note.textContent = 'Souffle doucement pour planer, plus fort pour monter.'; barre.style.transform = 'scaleX(1)';
+        REGLAGES.calib = reglage; sauverReglages(); ENTREE.remettre();
+        txt.textContent = "C'est réglé !"; note.textContent = 'Souffle doucement pour planer, plus fort pour monter. Le jeu reconnaît ton souffle : les voix, la musique et les petits bruits sont ignorés.'; barre.style.transform = 'scaleX(1)';
         $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = "C'est parti"; $('#b-calib-ok').onclick = function () { SON.clic(); apres(); };
       });
     }).catch(function () {
@@ -2466,6 +2549,7 @@ var ECRANS = (function () {
       SON.demarrer(); SON.clic();
       var go = function () { carnet(); };
       if (!REGLAGES.controle) choixControle(function () { jouer(premierNonFait()); });
+      else if (REGLAGES.controle === 'micro' && !(REGLAGES.calib && REGLAGES.calib.v === 2)) calibrage(go); // ancien réglage : on réécoute le souffle
       else if (REGLAGES.controle === 'micro') ENTREE.demarrerMicro().then(go, function () { REGLAGES.controle = 'doigt'; sauverReglages(); go(); });
       else go();
     };

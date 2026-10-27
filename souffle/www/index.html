@@ -226,7 +226,7 @@ body.nuit #hud .bas { color: #f6ecd9; --encre-douce: #e6d8c0; }
   <h3>Réglages</h3>
   <div class="rangee">Sons <span class="opts" data-r="son"><button data-v="1">oui</button><button data-v="0">non</button></span></div>
   <div class="rangee">Musique <span class="opts" data-r="musique"><button data-v="1">oui</button><button data-v="0">non</button></span></div>
-  <div class="rangee">Jouer <span class="opts" data-r="controle"><button data-v="micro">en soufflant</button><button data-v="doigt">au doigt</button></span></div>
+  <div class="rangee">Souffle <span class="opts" data-r="souffle"><button data-v="moments">moments</button><button data-v="partout">partout</button><button data-v="jamais">jamais</button></span></div>
   <div style="text-align:center;margin-top:12px"><button class="lien" id="b-recalib">régler le souffle</button></div>
   <div class="actions" style="display:flex;justify-content:center;margin-top:14px"><button class="trace" id="b-reglages-fermer">Fermer</button></div>
   <div class="credit">Souffle · un jeu Loucoume Interactive</div>
@@ -497,7 +497,11 @@ function noter(i, masque) { PROG[i] = ((PROG[i] || 0) | masque | 8); SAUVE.ecrir
 function gouttesMonde(m) { var n = 0; for (var i = m * PAR_MONDE; i < (m + 1) * PAR_MONDE; i++) n += gouttesDe(i); return n; }
 function premierNonFait() { for (var i = 0; i < NIVEAUX.length; i++) if (!estFait(i)) return i; return NIVEAUX.length - 1; }
 
-var REGLAGES = Object.assign({ son: true, musique: true, controle: null, calib: null }, SAUVE.lire('reglages', {}));
+var REGLAGES = Object.assign({ son: true, musique: true, souffle: 'moments', calib: null }, SAUVE.lire('reglages', {}));
+// moments souffle : le doigt est le geste de base ; le souffle est réservé aux temps forts de chaque monde
+// (l'arrivée, le milieu du jour, la finale ; au tout début, la 3e étape fait découvrir le souffle)
+function estMoment(i) { var k = i % PAR_MONDE; return k === (i < PAR_MONDE ? 2 : 0) || k === 12 || k === PAR_MONDE - 1; }
+function auSouffle(i) { return REGLAGES.souffle === 'partout' || (REGLAGES.souffle === 'moments' && estMoment(i)); }
 function sauverReglages() { SAUVE.ecrire('reglages', REGLAGES); }
 
 // Souffle : moteur du vol (déterministe, pas fixe de 1/60 s), partagé par le jeu et les outils de génération.
@@ -1486,7 +1490,7 @@ var SON = (function () {
   // ----- effets -----
   function souffle(b, actif) {
     if (!ctx) return;
-    var t = ctx.currentTime, k = REGLAGES.controle === 'micro' ? 0.35 : 1;
+    var t = ctx.currentTime, k = ENTREE.micro() ? 0.35 : 1;
     ventGain.gain.setTargetAtTime(actif ? (0.02 + b * 0.2) * k : 0, t, 0.09);
     ventFiltre.frequency.setTargetAtTime(560 + b * 1300, t, 0.12);
   }
@@ -1823,7 +1827,8 @@ var JEU = (function () {
     $('#hud-sous').textContent = 'jour ' + M.jour + ' · étape ' + (i % PAR_MONDE + 1) + '/' + PAR_MONDE;
     var change = i % PAR_MONDE === 0 || phaseDe(i) !== phaseDe(i - 1);
     legende = niv.nom ? { txt: niv.nom, sous: change ? M.heure : null, l: 3.4 } : change ? { txt: M.heure, l: 3.4 } : null;
-    $('#jauge-texte').textContent = niv.air ? 'réserve d\'air' : REGLAGES.controle === 'micro' ? 'souffle' : 'maintiens pour souffler';
+    if (ENTREE.micro() && REGLAGES.souffle === 'moments') legende = { txt: 'moment souffle', sous: 'souffle sur l\'écran', l: 3.8 };
+    $('#jauge-texte').textContent = niv.air ? 'réserve d\'air' : ENTREE.micro() ? 'souffle sur l\'écran' : 'maintiens pour souffler';
     nouvelleGraine();
     redim();
     SON.musique(niv.m);
@@ -2160,7 +2165,7 @@ var JEU = (function () {
       c.font = '600 19px Caveat, cursive'; c.fillStyle = 'rgba(' + ENC + ',' + (etat === 'attente' ? 0.85 : 0.35) + ')';
       if (M.sombre) { c.shadowColor = 'rgba(10,10,30,.8)'; c.shadowBlur = 5; }
       niv.notes.forEach(function (n) {
-        var tx = n.t === 'souffler' ? (REGLAGES.controle === 'micro' ? 'souffle doucement sur l\'écran' : 'maintiens le doigt pour souffler') : n.t;
+        var tx = n.t === 'souffler' ? (ENTREE.micro() ? 'souffle doucement sur l\'écran' : 'maintiens le doigt pour souffler') : n.t;
         c.fillText(tx, n.x, n.y);
         var w = c.measureText(tx).width; c.strokeStyle = c.fillStyle; c.lineWidth = 1;
         c.beginPath(); for (var u = 0; u <= w; u += 6) c[u ? 'lineTo' : 'moveTo'](n.x + u, n.y + 5 + Math.sin(u * 0.4) * 1.2); c.stroke();
@@ -2305,6 +2310,13 @@ var ECRANS = (function () {
       f.lineWidth = 0.8; f.beginPath(); f.arc(a.x + 1, a.y - 1, r - 1, 3, 9); f.stroke();
       f.fillStyle = dispo ? '#3c2a1f' : 'rgba(60,42,31,.3)'; f.font = '700 19px Caveat, cursive'; f.textAlign = 'center'; f.textBaseline = 'middle';
       f.fillText(String(k + 1), a.x, a.y + 1);
+      if (REGLAGES.souffle === 'moments' && estMoment(a.i)) { // aigrette de pissenlit : ici on souffle
+        var px = a.x + r * 0.95, py = a.y - r * 0.95, enc = dispo ? 'rgba(60,42,31,.8)' : 'rgba(60,42,31,.3)';
+        f.fillStyle = 'rgba(255,250,238,.9)'; f.beginPath(); f.arc(px, py, 9.5, 0, 7); f.fill();
+        f.strokeStyle = enc; f.fillStyle = enc; f.lineWidth = 0.9;
+        for (var q = 0; q < 12; q++) { var an = q / 12 * 6.283 + 0.2, ex = px + Math.cos(an) * 8, ey = py + Math.sin(an) * 8; f.beginPath(); f.moveTo(px, py); f.lineTo(ex, ey); f.stroke(); f.beginPath(); f.arc(ex, ey, 1.1, 0, 7); f.fill(); }
+        f.beginPath(); f.arc(px, py, 2, 0, 7); f.fill();
+      }
       if (fait) for (var g = 0; g < 3; g++) {
         var plein = PROG[a.i] & (1 << g), gx = a.x - 10 + g * 10, gy = a.y + r + 8;
         f.beginPath(); f.arc(gx, gy, 3, 0, 7);
@@ -2398,7 +2410,13 @@ var ECRANS = (function () {
     $('#carte-titre').textContent = 'Carte postale'; $('#carte-sous').textContent = M.nom + ', ' + (M.moment === 'aube' ? "à l'aube" : M.moment === 'midi' ? 'à midi' : M.moment === 'crépuscule' ? 'au crépuscule' : M.moment === 'nuit' ? 'la nuit' : 'le ' + M.moment);
     montrer('carte');
   }
-  function jouer(i) { montrer('jeu'); JEU.lancer(i); }
+  function jouer(i) {
+    var go = function () { montrer('jeu'); JEU.lancer(i); };
+    if (!auSouffle(i)) { ENTREE.arreterMicro(); go(); return; } // le micro ne reste jamais allumé pour rien
+    if (!(REGLAGES.calib && REGLAGES.calib.v === 2)) { calibrage(go, true); return; }
+    ENTREE.demarrerMicro().then(go, function () { pasDeMicro(); go(); });
+  }
+  function pasDeMicro() { REGLAGES.souffle = 'jamais'; sauverReglages(); toast("Le micro n'est pas disponible : on joue au doigt. Tu peux changer dans les réglages.", 5000); }
 
   // ----- fin du voyage : Plume s'envole de la montagne, le jour se lève, mille graines partent avec elle -----
   var envolT = 0, graines = [];
@@ -2499,16 +2517,19 @@ var ECRANS = (function () {
   }
 
   // ----- choix et calibrage du souffle -----
-  function choixControle(apres) {
-    montrer('controle');
-    $('#choix').style.display = 'flex'; $('#calib').classList.remove('on');
-    $('#b-micro').onclick = function () { SON.clic(); REGLAGES.controle = 'micro'; sauverReglages(); calibrage(apres); };
-    $('#b-doigt').onclick = function () { SON.clic(); REGLAGES.controle = 'doigt'; sauverReglages(); apres(); };
-  }
-  function calibrage(apres) {
+  function calibrage(apres, decouverte) {
     if (courant !== 'controle') montrer('controle');
     $('#choix').style.display = 'none'; $('#calib').classList.add('on'); $('#b-calib-ok').style.display = 'none';
     var txt = $('#calib-texte'), note = $('#calib-note'), barre = $('#calib-barre');
+    $('#controle h2').textContent = decouverte ? 'Un moment souffle !' : 'Régler le souffle';
+    if (decouverte && !calibrage.lance) { // la découverte : on explique avant d'allumer le micro
+      txt.textContent = 'Ici, Plume s\'envole avec ton vrai souffle.'; note.textContent = 'Souffle sur l\'écran, comme sur un pissenlit. Le son n\'est jamais enregistré, et ton doigt marche toujours.';
+      $('#calib-barre').style.transform = 'scaleX(0)';
+      $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = 'Essayer';
+      $('#b-calib-ok').onclick = function () { SON.clic(); calibrage.lance = true; calibrage(apres, true); };
+      return;
+    }
+    calibrage.lance = false;
     txt.textContent = 'Reste silencieux une seconde…'; note.textContent = 'Le jeu écoute le bruit de la pièce.';
     ENTREE.remettre();
     ENTREE.demarrerMicro().then(function () {
@@ -2520,6 +2541,8 @@ var ECRANS = (function () {
       }).then(function (souffle) {
         reglage = ENTREE.regler(silence, souffle);
         if (!reglage) {
+          calibrage.echecs = (calibrage.echecs || 0) + 1;
+          if (calibrage.echecs >= 2) { calibrage.echecs = 0; toast('Pas de souci : on joue au doigt pour cette fois.', 4000); ENTREE.arreterMicro(); apres(); return; }
           txt.textContent = "Je n'ai presque rien entendu."; note.textContent = 'Rapproche l\'écran de ton visage et réessaie, ou joue au doigt.';
           $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = 'Réessayer'; $('#b-calib-ok').onclick = function () { calibrage(apres); };
           return;
@@ -2529,9 +2552,7 @@ var ECRANS = (function () {
         $('#b-calib-ok').style.display = 'block'; $('#b-calib-ok').textContent = "C'est parti"; $('#b-calib-ok').onclick = function () { SON.clic(); apres(); };
       });
     }).catch(function () {
-      REGLAGES.controle = 'doigt'; sauverReglages();
-      toast("Le micro n'est pas disponible ici : on joue au doigt.");
-      apres();
+      pasDeMicro(); apres();
     });
   }
 
@@ -2539,9 +2560,9 @@ var ECRANS = (function () {
   function majReglages() {
     document.querySelectorAll('#reglages .opts').forEach(function (o) {
       var k = o.dataset.r;
-      o.querySelectorAll('button').forEach(function (b) { var v = k === 'controle' ? REGLAGES[k] : (REGLAGES[k] ? '1' : '0'); b.classList.toggle('on', b.dataset.v === v); });
+      o.querySelectorAll('button').forEach(function (b) { var v = k === 'souffle' ? REGLAGES[k] : (REGLAGES[k] ? '1' : '0'); b.classList.toggle('on', b.dataset.v === v); });
     });
-    $('#b-recalib').style.display = REGLAGES.controle === 'micro' ? 'inline' : 'none';
+    $('#b-recalib').style.display = REGLAGES.souffle !== 'jamais' ? 'inline' : 'none';
   }
   function ouvrirReglages() { majReglages(); $('#reglages').classList.add('on'); }
   function fermerReglages() { $('#reglages').classList.remove('on'); }
@@ -2553,11 +2574,7 @@ var ECRANS = (function () {
     var cs = getComputedStyle(sonde); document.documentElement.style.setProperty('--sa-top', cs.top); document.documentElement.style.setProperty('--sa-bottom', cs.bottom);
     $('#b-commencer').onclick = function () {
       SON.demarrer(); SON.clic();
-      var go = function () { carnet(); };
-      if (!REGLAGES.controle) choixControle(function () { jouer(premierNonFait()); });
-      else if (REGLAGES.controle === 'micro' && !(REGLAGES.calib && REGLAGES.calib.v === 2)) calibrage(go); // ancien réglage : on réécoute le souffle
-      else if (REGLAGES.controle === 'micro') ENTREE.demarrerMicro().then(go, function () { REGLAGES.controle = 'doigt'; sauverReglages(); go(); });
-      else go();
+      if (!SAUVE.lire('dejaJoue', false)) { SAUVE.ecrire('dejaJoue', true); jouer(premierNonFait()); } else carnet();
     };
     $('#b-reglages-titre').onclick = $('#b-reglages').onclick = function () { SON.demarrer(); SON.clic(); ouvrirReglages(); };
     $('#b-reglages-fermer').onclick = function () { SON.clic(); fermerReglages(); };
@@ -2565,7 +2582,7 @@ var ECRANS = (function () {
     $('#b-carte-retour').onclick = function () { SON.page(); carnet(mondeVu); };
     $('#b-prec').onclick = function () { if (mondeVu > 0) { SON.page(); carnet(mondeVu - 1); } };
     $('#b-suiv').onclick = function () { if (mondeVu < MONDES.length - 1) { SON.page(); carnet(mondeVu + 1); } };
-    $('#b-recalib').onclick = function () { fermerReglages(); calibrage(function () { carnet(mondeVu); }); };
+    $('#b-recalib').onclick = function () { fermerReglages(); var r = courant === 'titre' ? titre : function () { carnet(mondeVu); }; calibrage(r); };
     // bouton retour d'Android : on remonte d'un écran, et on quitte seulement depuis le titre
     var natif = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
     if (natif) natif.addListener('backButton', function () {
@@ -2577,10 +2594,9 @@ var ECRANS = (function () {
     document.querySelectorAll('#reglages .opts button').forEach(function (b) {
       b.onclick = function () {
         var k = b.parentNode.dataset.r; SON.clic();
-        if (k === 'controle') {
-          REGLAGES.controle = b.dataset.v; sauverReglages();
-          if (b.dataset.v === 'micro') { var retour = courant === 'titre' ? titre : function () { carnet(mondeVu); }; fermerReglages(); calibrage(retour); return; }
-          ENTREE.arreterMicro();
+        if (k === 'souffle') {
+          REGLAGES.souffle = b.dataset.v; sauverReglages();
+          if (b.dataset.v === 'jamais') ENTREE.arreterMicro();
         } else { REGLAGES[k] = b.dataset.v === '1'; sauverReglages(); SON.appliquer(); }
         majReglages();
       };

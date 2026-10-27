@@ -42,6 +42,9 @@ a.btn { display: inline-block; font-family: 'Fredoka', sans-serif; font-weight: 
 .logo span { display: inline-block; -webkit-text-stroke: 12px #fff; paint-order: stroke fill; text-shadow: 0 5px 0 #fff, 0 9px 0 #d9c9f2, 0 11px 0 #c3aee8; animation: lettre 3.2s ease-in-out infinite; }
 .logo span.reflet { -webkit-text-stroke: 0; text-shadow: none; position: absolute; left: 0; top: 0; color: transparent; background: linear-gradient(175deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.25) 30%, rgba(255,255,255,0) 42%); -webkit-background-clip: text; background-clip: text; }
 .lettre { position: relative; display: inline-block; }
+.logo .fleur-o { -webkit-text-stroke: 0; text-shadow: none; vertical-align: -0.04em; margin: 0 0.02em; }
+.logo .fleur-o img { width: 0.62em; height: 0.62em; display: block; filter: drop-shadow(0 5px 0 #fff) drop-shadow(0 4px 0 #d9c9f2); animation: tourne-o 9s linear infinite; }
+@keyframes tourne-o { to { transform: rotate(360deg) } }
 @keyframes lettre { 0%,100% { transform: translateY(0) rotate(0) } 30% { transform: translateY(-8px) rotate(-3deg) } 60% { transform: translateY(0) rotate(2deg) } }
 #sous-titre { position: relative; font-family: 'Fredoka'; font-weight: 600; font-size: clamp(15px, 4.3vw, 19px); color: #fff; background: linear-gradient(#ff9cc2, #ef6fa2); padding: 6px 22px 8px; border-radius: 6px; box-shadow: 0 4px 0 #cf4f86, 0 8px 16px rgba(200,70,130,.25); text-shadow: 0 2px 0 rgba(180,50,110,.35); margin-top: 4px; }
 #sous-titre::before, #sous-titre::after { content: ''; position: absolute; top: 9px; width: 22px; height: 100%; background: #e2588f; z-index: -1; }
@@ -2986,8 +2989,12 @@ function fondu(apres) {
 
 // ----- titre -----
 function preparerTitre() {
-  const couleurs = ['#ff7fae', '#ffb547', '#7cc96a', '#5fb6f5', '#a98af5', '#ff7fae', '#ffb547'];
-  $('logo').innerHTML = ['Jardin', 'Sonore'].map((mot, j) => [...mot].map((l, i) => `<span style="color:${couleurs[(i + j * 3) % couleurs.length]};animation-delay:${(i + j * 6) * 0.11}s"><b class="lettre">${l}<span class="reflet" aria-hidden="true">${l}</span></b></span>`).join('')).join('<br>');
+  // « Jardin » en verts de feuillage, « Sonore » en couleurs de pétales ; le premier « o » de Sonore est une fleur
+  const couleurs = [['#3fae4f', '#5cc35a', '#46b552', '#6ccf5a', '#3fae4f', '#5cc35a'], ['#ff6f9f', '#ff6f9f', '#ff8a6b', '#ff6f9f', '#f2689c', '#ff8a6b']];
+  const fleurO = () => { const c = toile(160, 160), g = c.getContext('2d'); g.scale(2, 2); g.fillStyle = '#fff'; g.beginPath(); g.arc(40, 40, 39, 0, TAU); g.fill(); dessinerFleur(g, 40, 40, 30, 1, 1, 0); return c.toDataURL(); };
+  $('logo').innerHTML = ['Jardin', 'Sonore'].map((mot, j) => [...mot].map((l, i) => j === 1 && i === 1
+    ? `<span class="fleur-o" style="animation-delay:${(i + j * 6) * 0.11}s"><img src="${fleurO()}" alt="o"></span>`
+    : `<span style="color:${couleurs[j][i]};animation-delay:${(i + j * 6) * 0.11}s"><b class="lettre">${l}<span class="reflet" aria-hidden="true">${l}</span></b></span>`).join('')).join('<br>');
   $('sous-titre').textContent = T('sousTitre', NB_NIVEAUX);
   $('lab-jouer').textContent = T('jouer');
   const n = nbFaits();
@@ -3081,6 +3088,59 @@ function dessinerBuisson(g, x, y, s, dir) { // massif feuillu ancré dans un coi
     for (let k = 0; k < 3; k++) { const a = -Math.PI * (0.25 + k * 0.25), lx = cx + Math.cos(a) * r * 0.92, ly = cy + Math.sin(a) * r * 0.92; g.beginPath(); g.ellipse(lx, ly, r * 0.16, r * 0.07, a + Math.PI / 2, 0, TAU); g.fill(); }
   }
 }
+const SCENE = { duree: 7, cycle: -1, joues: 0 };
+function sceneTitre(g, s, cx, cy) {
+  const yA = H * 0.43, dx = Math.min(W * 0.32, 170), yB = Math.min(cy - s * 0.25, yA + H * 0.12);
+  // le trajet : de la cloche au pissenlit, puis deux branches (gauche et droite) jusqu'aux feuilles, puis vers le bas
+  const tronc = [[cx, cy - s * 0.35], [cx, yA]];
+  const branche = c => [[cx, yA], [cx + c * dx, yA], [cx + c * dx, yB]];
+  const lg = pts => pts.slice(1).reduce((l, p, i) => l + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+  const L0 = lg(tronc), L1 = lg(branche(1)), V = Math.max(150, H * 0.22); // pixels par seconde
+  const DEPART = 0.45, T0 = L0 / V, T1 = L1 / V, tF = DEPART + T0 + T1 * (dx / L1);
+  // bourgeons : [x, y, instant où l'onde les touche, espèce, degré joué]
+  const buds = [
+    [cx, (cy - s * 0.35 + yA) / 2, DEPART + T0 / 2, 0, 0],
+    [cx - dx * 0.5, yA, DEPART + T0 + T1 * (dx * 0.5 / L1), 2, 2], [cx + dx * 0.5, yA, DEPART + T0 + T1 * (dx * 0.5 / L1), 5, 4],
+    [cx - dx, yB, DEPART + T0 + T1, 6, 5], [cx + dx, yB, DEPART + T0 + T1, 1, 7],
+  ];
+  const u = tJeu % SCENE.duree, cycle = Math.floor(tJeu / SCENE.duree);
+  const ferme = SCENE.duree - 1; // les fleurs se referment doucement avant de recommencer
+  // notes : seulement si le son est déjà ouvert (le navigateur attend un premier toucher) et que les sons sont permis
+  if (SCENE.cycle !== cycle) { SCENE.cycle = cycle; SCENE.joues = 0; }
+  const sonner = (bit, f) => { if (!(SCENE.joues & bit)) { SCENE.joues |= bit; if (SON.pret() && reglages.sons) f(); } };
+  if (u > 0.05) sonner(1, () => SON.jouer.note('cloche', 7, 0, 0.45));
+  if (u > DEPART + T0) sonner(2, () => SON.jouer.note('pissenlit', 4, 0, 0.45));
+  // ombre douce sous la cloche
+  g.fillStyle = 'rgba(70,140,60,.35)'; g.beginPath(); g.ellipse(cx, cy + s * 0.3, s * 0.9, s * 0.2, 0, 0, TAU); g.fill();
+  // l'onde : une traînée lumineuse qui avance, puis s'efface
+  const eff = u > ferme ? Math.max(0, 1 - (u - ferme) / 0.6) : 1;
+  const trace = (pts, t0, dur) => {
+    const k = clamp((u - t0) / dur, 0, 1); if (k <= 0 || eff <= 0) return null;
+    const out = [pts[0]]; let r = lg(pts) * k;
+    for (let i = 1; i < pts.length && r > 0; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], d = Math.hypot(x1 - x0, y1 - y0), f = Math.min(1, r / d); out.push([x0 + (x1 - x0) * f, y0 + (y1 - y0) * f]); r -= d; }
+    for (const [lw, al, col] of [[s * 0.3, 0.14, '#fff3a0'], [s * 0.13, 0.32, '#ffe27a'], [s * 0.045, 0.95, '#fffef0']]) {
+      g.globalAlpha = al * eff; g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); out.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    }
+    g.globalAlpha = 1;
+    return k < 1 ? out[out.length - 1] : null; // la tête de l'onde, tant qu'elle avance
+  };
+  const tetes = [trace(tronc, DEPART, T0), trace(branche(-1), DEPART + T0, T1), trace(branche(1), DEPART + T0, T1)];
+  // feuilles et pissenlit, posés comme dans un niveau ; ils se gonflent quand l'onde les touche
+  const sp = s * 0.62, appui = t0 => (u > t0 - 0.05 && u < t0 + 0.25 ? 1 - Math.abs(u - t0 - 0.08) / 0.2 : 0);
+  dessinerFeuille(g, cx - dx, yA, sp, 1, false, tJeu, appui(tF));
+  dessinerFeuille(g, cx + dx, yA, sp, 2, false, tJeu, appui(tF));
+  g.fillStyle = 'rgba(80,160,70,.4)'; g.beginPath(); g.arc(cx, yA + sp * 0.04, sp * 0.46, 0, TAU); g.fill(); // pastille de mousse : le pissenlit blanc se détache du ciel
+  dessinerPissenlit(g, cx, yA, sp, false, tJeu, appui(DEPART + T0));
+  // bourgeons qui éclosent quand l'onde passe, chacun avec sa note
+  buds.forEach(([x, y, tb, esp, deg], i) => {
+    if (u > tb) sonner(4 << i, () => { SON.jouer.note('bud', deg, 0, 0.6); if (!effetsReduits) eclat(x, y, '#fff6b0', 8, 0.8); });
+    const ouv = u < tb ? 0 : u > ferme ? Math.max(0, 1 - (u - ferme) / 0.8) : Math.min(1, (u - tb) / 0.4);
+    dessinerBud(g, x, y, s * 0.6, esp, ouv, tJeu, u > tb - 0.15 && u < tb + 0.3);
+  });
+  for (const h of tetes) if (h) { const gr = g.createRadialGradient(h[0], h[1], 0, h[0], h[1], s * 0.35); gr.addColorStop(0, 'rgba(255,255,240,1)'); gr.addColorStop(1, 'rgba(255,230,120,0)'); g.fillStyle = gr; g.beginPath(); g.arc(h[0], h[1], s * 0.35, 0, TAU); g.fill(); }
+  dessinerCloche(g, cx, cy, s, 3, 0, tJeu, u < 0.45);
+}
 function dessinerTitre(dt) {
   const g = ctx; g.setTransform(DPR, 0, 0, DPR, 0, 0);
   g.drawImage(fondTitre(), 0, 0, W, H);
@@ -3100,29 +3160,15 @@ function dessinerTitre(dt) {
     g.ellipse(cx, cy, cw * 0.5, cw * 0.13, 0, 0, TAU); g.ellipse(cx - cw * 0.16, cy - cw * 0.07, cw * 0.2, cw * 0.14, 0, 0, TAU); g.ellipse(cx + cw * 0.12, cy - cw * 0.1, cw * 0.25, cw * 0.17, 0, 0, TAU);
     g.fill();
   }
-  // la cloche sur sa butte, et la mélodie qui s'en échappe en deux rubans
+  // petite scène vivante : la cloche sonne, le pissenlit sépare la mélodie, deux feuilles la renvoient vers le bas,
+  // et cinq bourgeons éclosent en rythme, comme dans un vrai niveau. En boucle.
   const s = Math.min(W * 0.2, H * 0.1, 86), cx = W * 0.5, cy = H * 0.63;
-  const ruban = (cote, u) => { const x = cx + cote * u * W * 0.62; return [x, cy - s * 0.15 - Math.sin(u * 7 - tJeu * 2.4) * s * 0.28 * Math.min(1, u * 4) - u * H * 0.05]; };
-  for (const cote of [-1, 1]) {
-    for (const [lw, al, col] of [[s * 0.3, 0.12, '#fff3a0'], [s * 0.13, 0.3, '#ffe27a'], [s * 0.045, 0.95, '#fffef0']]) {
-      g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.beginPath();
-      for (let q = 0; q <= 40; q++) { const u = q / 40, [x, y] = ruban(cote, u); g.globalAlpha = al; if (q) g.lineTo(x, y); else g.moveTo(x, y); }
-      g.stroke();
-    }
-    g.globalAlpha = 1;
-    // notes qui voyagent le long du ruban
-    for (let k = 0; k < 3; k++) {
-      const u = ((tJeu * 0.16 + k / 3 + (cote > 0 ? 0.17 : 0)) % 1), [x, y] = ruban(cote, u);
-      g.globalAlpha = Math.min(1, u * 6, (1 - u) * 3);
-      dessinerNote(g, x, y - s * 0.05, s * 0.3, ['#ffffff', '#fff1a0', '#ffd0e4'][k], k + (cote > 0 ? 1 : 0));
-    }
-    g.globalAlpha = 1;
-  }
-  g.fillStyle = 'rgba(70,140,60,.35)'; g.beginPath(); g.ellipse(cx, cy + s * 0.3, s * 0.9, s * 0.2, 0, 0, TAU); g.fill();
-  dessinerCloche(g, cx, cy, s, 3, 0, tJeu, Math.sin(tJeu * 2.4) > 0.9);
-  // Mélo dirige l'orchestre au-dessus de la cloche
-  const mx = cx + Math.sin(tJeu * 0.8) * s * 1.5, my = cy - s * 1.25 + Math.sin(tJeu * 1.6) * s * 0.15;
-  dessinerMelo(g, mx, my, s * 0.95, tJeu, 'joie', Math.cos(tJeu * 0.8) > 0 ? 1 : -1);
+  sceneTitre(g, s, cx, cy);
+  // Mélo dirige l'orchestre, en haut à droite de la scène
+  // (sur un petit écran, le ruban du sous-titre prend sa place : elle se pose alors près de la cloche)
+  const haut = H * 0.43 - s * 0.95, place = haut - s * 0.4 > $('sous-titre').getBoundingClientRect().bottom;
+  const mx = (place ? cx + Math.min(W * 0.32, 170) : cx - s * 1.25) + Math.sin(tJeu * 0.8) * s * 0.15, my = (place ? haut : cy - s * 0.15) + Math.sin(tJeu * 1.6) * s * 0.1;
+  dessinerMelo(g, mx, my, s * 0.75, tJeu, 'joie', place ? -1 : 1);
   // massifs fleuris dans les coins du premier plan
   dessinerBuisson(g, -W * 0.06, H * 1.02, Math.min(W * 0.3, 150), 1);
   dessinerBuisson(g, W * 1.06, H * 1.02, Math.min(W * 0.3, 150), -1);

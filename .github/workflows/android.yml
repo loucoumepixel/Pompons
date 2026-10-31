@@ -43,6 +43,10 @@ jobs:
       - name: Créer le projet Android, les icônes et l'écran de démarrage
         run: npm run android
 
+      # Réglages propres à un jeu (ex. Jardin Sonore : écran de lancement crème, sans icône, avant l'intro du studio)
+      - name: Réglages Android du jeu
+        run: if [ -f android-ajustements.sh ]; then sh android-ajustements.sh; fi
+
       - name: Écran bloqué en portrait
         run: |
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity"\n            android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml

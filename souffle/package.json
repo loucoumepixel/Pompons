@@ -1,6 +1,6 @@
 {
   "name": "souffle",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Souffle : porte Plume d'un souffle et fais refleurir les prairies",
   "scripts": {

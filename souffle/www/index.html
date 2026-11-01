@@ -2490,6 +2490,7 @@ var JEU = (function () {
     }
     etat = 'chute'; minut = 0; essais++; porte = false;
     if (essais >= 6 && (niv.chemin || niv.aide)) $('#b-porte').classList.add('on'); // au 5e échec, le vent propose de porter Plume
+    else if (essais === 3 && !SAUVE.lire('astucePorte', false)) { SAUVE.ecrire('astucePorte', true); ECRANS.toast('Pas d’inquiétude : après 5 essais, le vent pourra porter Plume jusqu’au bout de l’étape.', 6500); } // on le dit une fois, avant que ça arrive
     if (essais >= 4 && (essais - 4) % 3 === 0 && !voirAide) { $('#b-aide').classList.add('appel'); ECRANS.toast('Besoin d\'un coup de crayon ? Touche le crayon en haut : il montre un chemin.', 6500); }
     SON.rate(ev, niv.m);
     if (ev === 'sol') { lacherAigrettes(p.x, gy, 12); terre(p.x, gy); chutes.push({ mode: 'plante', x: p.x, y: gy, t: 0, c: M.fleurs[fleurs.length % 3] }); }

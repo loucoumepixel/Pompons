@@ -2,6 +2,8 @@
 # Lancement façon Atelier des Maîtres : l'écran de démarrage d'Android est une crème unie, sans icône,
 # exactement la couleur sur laquelle l'intro Loucoume Interactive commence. Plus d'icône du jeu
 # (Android 12 et plus, tablettes comprises), plus de fond sombre en mode nuit, plus de bande grise.
+# Les barres du système restent transparentes : une couleur de barre de navigation opaque dessinait une
+# bande crème en bas de l'écran par-dessus le jeu (1.7.1).
 # Lancé par le workflow après « npm run android », depuis le dossier du jeu.
 set -e
 RES=android/app/src/main/res
@@ -33,9 +35,6 @@ STYLES='
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
         <item name="android:windowBackground">@color/creme_demarrage</item>
-        <item name="android:statusBarColor">@color/creme_demarrage</item>
-        <item name="android:navigationBarColor">@color/creme_demarrage</item>
-        <item name="android:windowLightStatusBar">true</item>
     </style>
 '
 cat > $RES/values/styles.xml <<X

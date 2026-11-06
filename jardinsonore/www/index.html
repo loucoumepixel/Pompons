@@ -285,7 +285,10 @@ input.champ { user-select: text; -webkit-user-select: text; touch-action: manipu
       var teinte = document.createElement("div");
       teinte.style.cssText = "position:absolute;inset:0;pointer-events:none;" +
         "background:radial-gradient(60% 50% at 15% 10%,rgba(255,201,163,.55),transparent 70%)," +
-        "radial-gradient(60% 55% at 90% 95%,rgba(255,156,198,.5),transparent 70%)," +
+        "radial-gradient(55% 40% at 88% 68%,rgba(255,156,198,.45),transparent 70%)," +
+        // le bas reste crème unie : au tout premier instant, Android peut montrer le fond de la fenêtre
+        // (crème) sous le jeu ; ainsi aucune bande ne se voit.
+        "linear-gradient(180deg,rgba(255,246,239,0) 82%," + CREME + " 94%)," +
         "linear-gradient(135deg,#FFF6EF,#FFEFF3 55%,#FCE9F4)";
       voile.appendChild(teinte);
 

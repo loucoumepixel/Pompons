@@ -3119,7 +3119,8 @@ function dessinerBuisson(g, x, y, s, dir) { // massif feuillu ancré dans un coi
     for (let k = 0; k < 3; k++) { const a = -Math.PI * (0.25 + k * 0.25), lx = cx + Math.cos(a) * r * 0.92, ly = cy + Math.sin(a) * r * 0.92; g.beginPath(); g.ellipse(lx, ly, r * 0.16, r * 0.07, a + Math.PI / 2, 0, TAU); g.fill(); }
   }
 }
-const SCENE = { duree: 7, cycle: -1, joues: 0 };
+// t0 : la scène commence quand le logo du studio a fini ; avant, elle reste muette (pas de notes par-dessus le carillon)
+const SCENE = { duree: 7, cycle: -1, joues: 0, t0: 0, studio: !!window.LoucoumeIntro };
 function sceneTitre(g, s, cx, cy) {
   const yA = H * 0.43, dx = Math.min(W * 0.32, 170), yB = Math.min(cy - s * 0.25, yA + H * 0.12);
   // le trajet : de la cloche au pissenlit, puis deux branches (gauche et droite) jusqu'aux feuilles, puis vers le bas
@@ -3134,11 +3135,12 @@ function sceneTitre(g, s, cx, cy) {
     [cx - dx * 0.5, yA, DEPART + T0 + T1 * (dx * 0.5 / L1), 2, 2], [cx + dx * 0.5, yA, DEPART + T0 + T1 * (dx * 0.5 / L1), 5, 4],
     [cx - dx, yB, DEPART + T0 + T1, 6, 5], [cx + dx, yB, DEPART + T0 + T1, 1, 7],
   ];
-  const u = tJeu % SCENE.duree, cycle = Math.floor(tJeu / SCENE.duree);
+  const tS = SCENE.studio ? 0 : Math.max(0, tJeu - SCENE.t0);
+  const u = tS % SCENE.duree, cycle = Math.floor(tS / SCENE.duree);
   const ferme = SCENE.duree - 1; // les fleurs se referment doucement avant de recommencer
   // notes : seulement si le son est déjà ouvert (le navigateur attend un premier toucher) et que les sons sont permis
   if (SCENE.cycle !== cycle) { SCENE.cycle = cycle; SCENE.joues = 0; }
-  const sonner = (bit, f) => { if (!(SCENE.joues & bit)) { SCENE.joues |= bit; if (SON.pret() && reglages.sons) f(); } };
+  const sonner = (bit, f) => { if (!(SCENE.joues & bit)) { SCENE.joues |= bit; if (!SCENE.studio && SON.pret() && reglages.sons) f(); } };
   if (u > 0.05) sonner(1, () => SON.jouer.note('cloche', 7, 0, 0.45));
   if (u > DEPART + T0) sonner(2, () => SON.jouer.note('pissenlit', 4, 0, 0.45));
   // ombre douce sous la cloche
@@ -3616,7 +3618,7 @@ preparerTitre();
 try { SON.init(); } catch (e) { }
 montrer('titre');
 // logo du studio à chaque lancement (≈ 2,6 s, un toucher le passe), puis le thème de l'accueil
-if (window.LoucoumeIntro) { SON.musique(false); (window.INTRO_STUDIO || LoucoumeIntro.jouer({ son: true })).then(() => { if (ecranActuel === 'titre') SON.musique(reglages.musique, 'titre'); }); }
+if (window.LoucoumeIntro) { SON.musique(false); (window.INTRO_STUDIO || LoucoumeIntro.jouer({ son: true })).then(() => { SCENE.studio = false; SCENE.t0 = tJeu; SCENE.cycle = -1; if (ecranActuel === 'titre') SON.musique(reglages.musique, 'titre'); }); }
 document.addEventListener('pointerdown', () => SON.init(), true);
 (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => { icones = {}; });
 requestAnimationFrame(boucle);

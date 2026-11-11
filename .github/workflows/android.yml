@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jeu: [sucrepastel, jardinsonore]
+        jeu: [sucrepastel, jardinsonore, souffle]
     defaults:
       run:
         working-directory: ${{ matrix.jeu }}
@@ -53,6 +53,13 @@ jobs:
           grep -n "screenOrientation" android/app/src/main/AndroidManifest.xml
           # sauvegarde Android (la progression suit le joueur sur un nouveau téléphone) : doit rester active
           grep -n "allowBackup=\"true\"" android/app/src/main/AndroidManifest.xml || echo "::warning::sauvegarde Android désactivée"
+
+      # Souffle se joue en soufflant dans le micro : le son est analysé en direct, jamais enregistré.
+      - name: Autorisation du micro (Souffle)
+        if: matrix.jeu == 'souffle'
+        run: |
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.VIBRATE" />#' android/app/src/main/AndroidManifest.xml
+          grep -n "RECORD_AUDIO" android/app/src/main/AndroidManifest.xml
 
       - name: Numéro de version (augmente à chaque construction)
         run: |

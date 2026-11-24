@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lancement façon Atelier des Maîtres : l'écran de démarrage d'Android est une crème unie, sans icône,
+# Lancement façon Atelier des Maîtres : l’écran de démarrage d’Android est un bleu nuit uni (#1F2656), sans icône,
 # exactement la couleur sur laquelle l'intro Loucoume Interactive commence. Plus d'icône du jeu
 # (Android 12 et plus, tablettes comprises), plus de fond sombre en mode nuit, plus de bande grise.
 # Les barres du système restent transparentes : une couleur de barre de navigation opaque dessinait une
@@ -11,7 +11,7 @@ mkdir -p $RES/values $RES/values-night $RES/values-v31 $RES/drawable
 cat > $RES/values/demarrage_couleurs.xml <<'X'
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="creme_demarrage">#FFF6EF</color>
+    <color name="creme_demarrage">#1F2656</color>
 </resources>
 X
 cp $RES/values/demarrage_couleurs.xml $RES/values-night/demarrage_couleurs.xml

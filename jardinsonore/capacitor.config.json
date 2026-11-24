@@ -2,7 +2,7 @@
   "appId": "fr.louc.jardinsonore",
   "appName": "Jardin Sonore",
   "webDir": "www",
-  "backgroundColor": "#FFF6EF",
+  "backgroundColor": "#1F2656",
   "android": {
     "allowMixedContent": false
   },

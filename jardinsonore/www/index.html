@@ -252,172 +252,458 @@ input.champ { user-select: text; -webkit-user-select: text; touch-action: manipu
 <body>
 <!-- Démarrage : la même crème que l'écran de lancement d'Android, puis l'intro du studio démarre tout de suite,
      avant que le jeu se charge (comme dans Atelier des Maîtres). -->
-<div id="avant-intro" style="position:fixed;inset:-60px 0;z-index:2147483001;background:#FFF6EF"></div>
+<div id="avant-intro" style="position:fixed;inset:-60px 0;z-index:2147483001;background:#1F2656"></div>
 <script>
-/* Intro du studio Loucoume Interactive : le logo s'anime au lancement du jeu (≈ 2,9 s).
- * Un toucher la passe. Aucun fichier externe, aucune dépendance.
+/* Intro du studio Loucoume Interactive, déclinée selon le jeu (≈ 2,7 s). Un toucher la passe.
+ * Même logo, même chorégraphie (le badge rebondit, le L et le i se tracent, le triangle « play » se pose,
+ * le nom monte lettre par lettre, un reflet passe), mais la matière change avec le jeu,
+ * comme le logo Warner Bros d'autrefois.
  *
  *   <script src="intro-studio.js"><\/script>
- *   LoucoumeIntro.jouer().then(demarrerLeJeu);
+ *   LoucoumeIntro.jouer({ son: true, theme: "jardin" }).then(demarrerLeJeu);
  *
- * Options : { son: true }  (petit carillon quand le triangle se pose, si le navigateur l'autorise)
+ * Thèmes : "studio" (par défaut, l'original), "jardin" (Jardin Sonore), "souffle" (Souffle),
+ *          "fanfare" (Fanfare), "eclats" (Éclats).
+ * Mettre la couleur LoucoumeIntro.themes[theme].fond comme backgroundColor dans capacitor.config du jeu.
  */
 (function () {
   var D = {"big": ["M23.31 206.49Q20.88 206.49 19.85 205.76Q18.82 205.03 18.61 203.87Q18.39 202.71 18.39 201.52V173.6Q18.39 172.41 18.61 171.28Q18.82 170.14 19.85 169.42Q20.88 168.69 23.36 168.69Q25.84 168.69 26.84 169.42Q27.84 170.14 28.06 171.28Q28.27 172.41 28.27 173.65V198.06H41.45Q42.48 198.06 43.42 198.22Q44.37 198.39 44.99 199.28Q45.61 200.17 45.61 202.27Q45.61 204.33 44.96 205.22Q44.31 206.11 43.37 206.3Q42.42 206.49 41.4 206.49Z", "M68.53 207.08Q64.59 207.08 61.16 205.6Q57.73 204.11 55.14 201.46Q52.54 198.82 51.06 195.34Q49.57 191.85 49.57 187.91Q49.57 183.81 51.01 180.24Q52.44 176.68 54.97 173.98Q57.51 171.28 60.89 169.77Q64.26 168.25 68.1 168.25Q72.04 168.25 75.47 169.74Q78.9 171.22 81.49 173.87Q84.08 176.52 85.54 180.05Q87 183.59 87 187.69Q87 191.69 85.57 195.2Q84.13 198.71 81.57 201.38Q79 204.06 75.68 205.57Q72.36 207.08 68.53 207.08ZM68.26 197.2Q70.09 197.2 71.71 196.47Q73.33 195.74 74.55 194.47Q75.76 193.2 76.44 191.45Q77.11 189.69 77.11 187.69Q77.11 185.7 76.41 183.97Q75.71 182.24 74.5 180.92Q73.28 179.59 71.69 178.87Q70.09 178.14 68.31 178.14Q66.48 178.14 64.88 178.87Q63.29 179.59 62.08 180.92Q60.86 182.24 60.16 183.97Q59.46 185.7 59.46 187.69Q59.46 189.64 60.16 191.37Q60.86 193.09 62.08 194.42Q63.29 195.74 64.88 196.47Q66.48 197.2 68.26 197.2Z", "M108.3 207.08Q104.19 207.08 101.09 205.43Q97.98 203.79 95.88 201.09Q93.77 198.39 92.72 195.15Q91.66 191.91 91.66 188.72V173.6Q91.66 172.36 91.88 171.22Q92.1 170.09 93.12 169.36Q94.15 168.63 96.63 168.63Q99.12 168.63 100.14 169.36Q101.17 170.09 101.38 171.22Q101.6 172.36 101.6 173.65V188.72Q101.6 190.5 102.19 192.45Q102.79 194.39 104.27 195.77Q105.76 197.14 108.46 197.14Q110.51 197.14 112.02 196.09Q113.53 195.04 114.37 193.12Q115.21 191.2 115.21 188.67V173.33Q115.21 172.14 115.45 171.09Q115.69 170.04 116.72 169.33Q117.75 168.63 120.18 168.63Q122.66 168.63 123.66 169.39Q124.66 170.14 124.87 171.28Q125.09 172.41 125.09 173.65V188.83Q125.09 192.07 124.01 195.28Q122.93 198.49 120.8 201.17Q118.66 203.84 115.53 205.46Q112.4 207.08 108.3 207.08Z", "M149.31 207.03Q147.2 207.03 144.61 206.35Q142.02 205.68 139.4 204.22Q136.78 202.76 134.59 200.44Q132.4 198.12 131.08 194.88Q129.76 191.64 129.76 187.37Q129.76 183.27 131.08 180.13Q132.4 177 134.56 174.73Q136.72 172.47 139.34 171.06Q141.96 169.66 144.61 168.98Q147.25 168.31 149.47 168.31Q152.22 168.31 154.33 168.98Q156.43 169.66 157.76 170.39Q159.08 171.12 159.4 171.33Q160.48 172.03 161.43 172.87Q162.37 173.71 162.37 175.11Q162.37 175.81 162.08 176.57Q161.78 177.33 161.19 178.14Q160.11 179.65 159.16 180.35Q158.22 181.05 157.3 181.05Q156.6 181.05 155.95 180.73Q155.3 180.4 154.38 179.81Q154 179.54 153.41 179.19Q152.82 178.84 151.79 178.54Q150.76 178.24 149.09 178.24Q147.69 178.24 146.04 178.76Q144.39 179.27 142.93 180.38Q141.48 181.48 140.56 183.29Q139.64 185.1 139.64 187.64Q139.64 190.23 140.59 192.01Q141.53 193.8 142.99 194.9Q144.45 196.01 146.09 196.52Q147.74 197.04 149.09 197.04Q150.49 197.04 151.47 196.79Q152.44 196.55 153.22 196.12Q154 195.69 154.65 195.25Q155.25 194.82 155.95 194.5Q156.65 194.17 157.35 194.17Q158.27 194.17 159.19 194.93Q160.11 195.69 161.13 197.25Q161.73 198.17 162.02 198.95Q162.32 199.74 162.32 200.38Q162.32 201.73 161.38 202.54Q160.43 203.35 159.35 204Q158.97 204.22 157.73 204.97Q156.49 205.73 154.38 206.38Q152.28 207.03 149.31 207.03Z", "M185.19 207.08Q181.24 207.08 177.81 205.6Q174.39 204.11 171.79 201.46Q169.2 198.82 167.72 195.34Q166.23 191.85 166.23 187.91Q166.23 183.81 167.66 180.24Q169.09 176.68 171.63 173.98Q174.17 171.28 177.54 169.77Q180.92 168.25 184.75 168.25Q188.7 168.25 192.12 169.74Q195.55 171.22 198.15 173.87Q200.74 176.52 202.2 180.05Q203.65 183.59 203.65 187.69Q203.65 191.69 202.22 195.2Q200.79 198.71 198.23 201.38Q195.66 204.06 192.34 205.57Q189.02 207.08 185.19 207.08ZM184.92 197.2Q186.75 197.2 188.37 196.47Q189.99 195.74 191.21 194.47Q192.42 193.2 193.1 191.45Q193.77 189.69 193.77 187.69Q193.77 185.7 193.07 183.97Q192.37 182.24 191.15 180.92Q189.94 179.59 188.34 178.87Q186.75 178.14 184.97 178.14Q183.13 178.14 181.54 178.87Q179.95 179.59 178.73 180.92Q177.52 182.24 176.82 183.97Q176.11 185.7 176.11 187.69Q176.11 189.64 176.82 191.37Q177.52 193.09 178.73 194.42Q179.95 195.74 181.54 196.47Q183.13 197.2 184.92 197.2Z", "M224.95 207.08Q220.85 207.08 217.75 205.43Q214.64 203.79 212.53 201.09Q210.43 198.39 209.38 195.15Q208.32 191.91 208.32 188.72V173.6Q208.32 172.36 208.54 171.22Q208.75 170.09 209.78 169.36Q210.81 168.63 213.29 168.63Q215.77 168.63 216.8 169.36Q217.83 170.09 218.04 171.22Q218.26 172.36 218.26 173.65V188.72Q218.26 190.5 218.85 192.45Q219.45 194.39 220.93 195.77Q222.42 197.14 225.12 197.14Q227.17 197.14 228.68 196.09Q230.19 195.04 231.03 193.12Q231.87 191.2 231.87 188.67V173.33Q231.87 172.14 232.11 171.09Q232.35 170.04 233.38 169.33Q234.4 168.63 236.83 168.63Q239.32 168.63 240.32 169.39Q241.32 170.14 241.53 171.28Q241.75 172.41 241.75 173.65V188.83Q241.75 192.07 240.67 195.28Q239.59 198.49 237.45 201.17Q235.32 203.84 232.19 205.46Q229.06 207.08 224.95 207.08Z", "M252.03 206.43Q249.66 206.43 248.63 205.73Q247.6 205.03 247.39 203.89Q247.17 202.76 247.17 201.46V173.6Q247.17 172.41 247.39 171.31Q247.6 170.2 248.63 169.47Q249.66 168.74 252.14 168.74Q253.81 168.74 254.6 168.96Q255.38 169.17 255.73 169.5Q256.08 169.82 256.46 170.25L267.64 184.62H267.31L278.44 170.31Q278.98 169.71 279.44 169.39Q279.9 169.06 280.68 168.9Q281.46 168.74 282.92 168.74Q285.35 168.74 286.38 169.47Q287.4 170.2 287.62 171.33Q287.83 172.47 287.83 173.71V201.57Q287.83 202.76 287.62 203.89Q287.4 205.03 286.38 205.73Q285.35 206.43 282.87 206.43Q280.44 206.43 279.41 205.7Q278.38 204.97 278.17 203.81Q277.95 202.65 277.95 201.46V186.13L271.63 194.71Q271.42 194.98 270.99 195.52Q270.55 196.06 269.74 196.5Q268.93 196.93 267.48 196.93Q266.02 196.93 265.18 196.5Q264.34 196.06 263.91 195.55Q263.48 195.04 263.26 194.71L257 186.18V201.57Q257 202.76 256.78 203.89Q256.57 205.03 255.54 205.73Q254.52 206.43 252.03 206.43Z", "M298.71 206.49Q296.28 206.49 295.26 205.76Q294.23 205.03 294.01 203.87Q293.8 202.71 293.8 201.52V173.6Q293.8 170.79 294.9 169.74Q296.01 168.69 298.87 168.69H318.64Q319.88 168.69 320.99 168.9Q322.09 169.12 322.82 170.14Q323.55 171.17 323.55 173.65Q323.55 176.08 322.82 177.11Q322.09 178.14 320.96 178.35Q319.83 178.57 318.58 178.57H303.68V183.37H313.67Q314.91 183.37 315.88 183.56Q316.86 183.75 317.45 184.62Q318.04 185.48 318.04 187.64Q318.04 189.69 317.45 190.58Q316.86 191.47 315.83 191.64Q314.8 191.8 313.56 191.8H303.68V196.6H318.64Q319.88 196.6 320.99 196.82Q322.09 197.04 322.82 198.06Q323.55 199.09 323.55 201.57Q323.55 204 322.82 205.03Q322.09 206.05 320.96 206.27Q319.83 206.49 318.58 206.49Z"], "small": "M104.93 238.23Q104.31 238.23 104.01 238.03Q103.71 237.84 103.64 237.53Q103.57 237.22 103.57 236.83V228.27Q103.57 227.9 103.65 227.59Q103.73 227.28 104.02 227.1Q104.31 226.91 104.95 226.91Q105.59 226.91 105.88 227.1Q106.17 227.28 106.24 227.6Q106.31 227.93 106.31 228.32V236.85Q106.31 237.24 106.24 237.55Q106.17 237.86 105.88 238.05Q105.59 238.23 104.93 238.23ZM104.93 224.68Q104.26 224.68 103.95 224.49Q103.64 224.29 103.56 223.95Q103.48 223.6 103.48 223.19Q103.48 222.75 103.56 222.43Q103.64 222.11 103.96 221.91Q104.28 221.72 104.95 221.72Q105.64 221.72 105.94 221.92Q106.24 222.13 106.33 222.46Q106.42 222.8 106.42 223.23Q106.42 223.62 106.33 223.97Q106.24 224.31 105.94 224.5Q105.64 224.68 104.93 224.68Z M112.37 238.21Q111.75 238.21 111.46 238.01Q111.17 237.82 111.11 237.51Q111.04 237.19 111.04 236.8V228.2Q111.04 227.83 111.11 227.53Q111.17 227.24 111.47 227.06Q111.77 226.89 112.39 226.89Q112.95 226.89 113.22 227.03Q113.5 227.17 113.59 227.37Q113.68 227.58 113.69 227.79Q113.7 228 113.73 228.11L113.64 228.85Q113.77 228.48 114.1 228.13Q114.42 227.79 114.88 227.5Q115.34 227.21 115.88 227.04Q116.42 226.87 116.99 226.87Q118.08 226.87 118.93 227.26Q119.78 227.65 120.39 228.36Q121 229.08 121.32 230.05Q121.64 231.03 121.64 232.25V236.83Q121.64 237.22 121.56 237.53Q121.48 237.84 121.2 238.02Q120.93 238.21 120.26 238.21Q119.62 238.21 119.32 238.01Q119.02 237.82 118.95 237.51Q118.88 237.19 118.88 236.8V232.23Q118.88 231.4 118.59 230.8Q118.3 230.2 117.76 229.88Q117.22 229.56 116.4 229.56Q115.59 229.56 114.99 229.89Q114.39 230.23 114.07 230.82Q113.75 231.42 113.75 232.23V236.83Q113.75 237.22 113.68 237.53Q113.61 237.84 113.33 238.02Q113.04 238.21 112.37 238.21Z M131.68 238.23Q130.56 238.23 129.75 238Q128.95 237.77 128.44 237.29Q127.93 236.8 127.69 236.03Q127.45 235.26 127.45 234.21V224.45Q127.45 224.04 127.53 223.74Q127.61 223.44 127.9 223.27Q128.19 223.1 128.81 223.1Q129.45 223.1 129.74 223.28Q130.03 223.46 130.11 223.77Q130.19 224.09 130.19 224.45V234.11Q130.19 234.6 130.27 234.89Q130.35 235.19 130.52 235.34Q130.69 235.49 130.98 235.55Q131.27 235.61 131.68 235.61Q132.12 235.61 132.43 235.68Q132.74 235.75 132.9 236.01Q133.06 236.28 133.06 236.87Q133.06 237.52 132.87 237.8Q132.67 238.09 132.36 238.16Q132.05 238.23 131.68 238.23ZM126.51 227.12 128.88 227.14 132.05 227.05Q132.44 227.05 132.75 227.13Q133.06 227.21 133.25 227.5Q133.43 227.79 133.43 228.43Q133.43 229.03 133.25 229.33Q133.06 229.63 132.76 229.71Q132.47 229.79 132.07 229.79L128.99 229.74L126.44 229.77Q125.86 229.74 125.65 229.43Q125.43 229.12 125.43 228.41Q125.43 227.74 125.69 227.43Q125.96 227.12 126.51 227.12Z M142.83 238.37Q141.34 238.37 140.22 237.88Q139.1 237.4 138.36 236.56Q137.61 235.72 137.23 234.68Q136.85 233.63 136.85 232.5Q136.85 230.85 137.61 229.56Q138.37 228.27 139.71 227.54Q141.06 226.8 142.81 226.8Q144.05 226.8 144.99 227.19Q145.94 227.58 146.57 228.21Q147.2 228.85 147.53 229.61Q147.87 230.36 147.87 231.08Q147.87 232.3 147.28 232.85Q146.69 233.4 145.82 233.4H139.75Q139.77 234.18 140.24 234.76Q140.71 235.33 141.44 235.64Q142.16 235.95 142.92 235.95Q143.5 235.95 143.95 235.88Q144.39 235.81 144.72 235.71Q145.04 235.61 145.28 235.49Q145.52 235.38 145.73 235.29Q145.94 235.19 146.12 235.17Q146.37 235.15 146.62 235.29Q146.88 235.42 147.04 235.77Q147.18 236 147.23 236.19Q147.29 236.39 147.29 236.57Q147.29 237.03 146.74 237.44Q146.19 237.84 145.19 238.1Q144.19 238.37 142.83 238.37ZM139.75 231.77H144.46Q144.85 231.77 145.06 231.64Q145.27 231.51 145.27 231.1Q145.27 230.57 144.95 230.15Q144.62 229.72 144.07 229.48Q143.52 229.24 142.78 229.24Q141.93 229.24 141.24 229.57Q140.55 229.9 140.15 230.48Q139.75 231.05 139.75 231.77Z M153.31 238.23Q152.69 238.23 152.4 238.03Q152.11 237.84 152.05 237.52Q151.98 237.19 151.98 236.8V228.27Q151.98 227.86 152.05 227.55Q152.11 227.24 152.4 227.06Q152.69 226.89 153.33 226.89Q153.95 226.89 154.24 227.05Q154.53 227.21 154.61 227.45Q154.69 227.7 154.69 227.93L154.51 228.34Q154.62 228.16 154.83 227.89Q155.03 227.63 155.38 227.36Q155.72 227.1 156.21 226.93Q156.69 226.75 157.36 226.75Q157.63 226.75 157.94 226.81Q158.25 226.87 158.57 226.97Q158.88 227.07 159.13 227.24Q159.38 227.4 159.52 227.62Q159.66 227.83 159.66 228.11Q159.66 228.85 159.29 229.35Q158.92 229.86 158.42 229.86Q158.07 229.86 157.91 229.79Q157.75 229.72 157.65 229.63Q157.54 229.54 157.35 229.47Q157.15 229.4 156.74 229.4Q156.39 229.4 156.04 229.51Q155.68 229.63 155.38 229.86Q155.08 230.09 154.9 230.44Q154.71 230.8 154.71 231.26V236.85Q154.71 237.24 154.64 237.55Q154.58 237.86 154.28 238.05Q153.98 238.23 153.31 238.23Z M173.13 238.18Q172.46 238.18 172.14 237.93Q171.82 237.68 171.82 237.24L171.98 236.48Q171.79 236.78 171.36 237.18Q170.92 237.59 170.21 237.9Q169.49 238.21 168.48 238.21Q167.4 238.21 166.45 237.76Q165.49 237.31 164.77 236.52Q164.04 235.72 163.62 234.7Q163.19 233.68 163.19 232.5Q163.19 231.38 163.62 230.38Q164.04 229.38 164.78 228.59Q165.52 227.81 166.47 227.36Q167.42 226.91 168.48 226.91Q169.43 226.91 170.08 227.17Q170.74 227.42 171.2 227.8Q171.66 228.18 171.96 228.59L171.82 227.93Q171.82 227.42 172.14 227.16Q172.46 226.89 173.15 226.89Q173.8 226.89 174.07 227.09Q174.35 227.28 174.42 227.62Q174.49 227.95 174.49 228.36V236.78Q174.49 237.17 174.42 237.49Q174.35 237.82 174.06 238Q173.77 238.18 173.13 238.18ZM168.9 235.52Q169.68 235.52 170.3 235.12Q170.92 234.73 171.3 234.06Q171.68 233.38 171.68 232.55Q171.68 231.65 171.29 230.99Q170.9 230.32 170.26 229.94Q169.63 229.56 168.85 229.56Q168 229.56 167.33 229.96Q166.67 230.36 166.29 231.04Q165.91 231.72 165.91 232.57Q165.91 233.4 166.3 234.07Q166.69 234.73 167.37 235.12Q168.05 235.52 168.9 235.52Z M184.46 238.28Q183.36 238.28 182.31 237.9Q181.26 237.52 180.42 236.78Q179.58 236.04 179.09 234.98Q178.59 233.91 178.59 232.55Q178.59 231.19 179.09 230.13Q179.58 229.08 180.41 228.34Q181.24 227.6 182.27 227.21Q183.31 226.82 184.41 226.82Q185.22 226.82 185.94 227.05Q186.67 227.28 187.2 227.6Q187.73 227.93 187.96 228.25Q188.25 228.52 188.46 228.78Q188.67 229.03 188.6 229.4Q188.53 229.63 188.39 229.82Q188.25 230.02 188.05 230.23Q187.5 230.85 186.97 230.69Q186.67 230.53 186.37 230.34Q186.07 230.16 185.76 229.98Q185.45 229.81 185.13 229.7Q184.8 229.58 184.41 229.58Q183.54 229.58 182.86 229.96Q182.18 230.34 181.8 231.01Q181.42 231.68 181.42 232.55Q181.42 233.42 181.8 234.1Q182.18 234.78 182.85 235.16Q183.52 235.54 184.37 235.54Q184.78 235.54 185.16 235.44Q185.54 235.33 185.84 235.16Q186.14 234.99 186.32 234.8Q186.58 234.64 186.78 234.5Q186.99 234.37 187.22 234.37Q187.5 234.37 187.76 234.56Q188.02 234.76 188.35 235.17Q188.65 235.52 188.68 235.84Q188.71 236.16 188.54 236.46Q188.37 236.76 187.98 237.01Q187.7 237.29 187.16 237.57Q186.62 237.86 185.92 238.07Q185.22 238.28 184.46 238.28Z M198.44 238.23Q197.31 238.23 196.5 238Q195.7 237.77 195.19 237.29Q194.69 236.8 194.44 236.03Q194.2 235.26 194.2 234.21V224.45Q194.2 224.04 194.28 223.74Q194.36 223.44 194.65 223.27Q194.94 223.1 195.56 223.1Q196.2 223.1 196.49 223.28Q196.78 223.46 196.86 223.77Q196.94 224.09 196.94 224.45V234.11Q196.94 234.6 197.02 234.89Q197.1 235.19 197.27 235.34Q197.45 235.49 197.73 235.55Q198.02 235.61 198.44 235.61Q198.87 235.61 199.18 235.68Q199.49 235.75 199.65 236.01Q199.81 236.28 199.81 236.87Q199.81 237.52 199.62 237.8Q199.42 238.09 199.11 238.16Q198.8 238.23 198.44 238.23ZM193.26 227.12 195.63 227.14 198.8 227.05Q199.19 227.05 199.5 227.13Q199.81 227.21 200 227.5Q200.18 227.79 200.18 228.43Q200.18 229.03 200 229.33Q199.81 229.63 199.52 229.71Q199.22 229.79 198.83 229.79L195.74 229.74L193.19 229.77Q192.62 229.74 192.4 229.43Q192.18 229.12 192.18 228.41Q192.18 227.74 192.44 227.43Q192.71 227.12 193.26 227.12Z M205.58 238.23Q204.96 238.23 204.66 238.03Q204.36 237.84 204.29 237.53Q204.22 237.22 204.22 236.83V228.27Q204.22 227.9 204.3 227.59Q204.38 227.28 204.67 227.1Q204.96 226.91 205.6 226.91Q206.25 226.91 206.53 227.1Q206.82 227.28 206.89 227.6Q206.96 227.93 206.96 228.32V236.85Q206.96 237.24 206.89 237.55Q206.82 237.86 206.53 238.05Q206.25 238.23 205.58 238.23ZM205.58 224.68Q204.91 224.68 204.6 224.49Q204.29 224.29 204.21 223.95Q204.13 223.6 204.13 223.19Q204.13 222.75 204.21 222.43Q204.29 222.11 204.61 221.91Q204.94 221.72 205.6 221.72Q206.29 221.72 206.59 221.92Q206.89 222.13 206.98 222.46Q207.08 222.8 207.08 223.23Q207.08 223.62 206.98 223.97Q206.89 224.31 206.59 224.5Q206.29 224.68 205.58 224.68Z M216.8 238.28Q216.31 238.28 215.99 238.12Q215.67 237.95 215.49 237.59L211.3 228.82Q210.95 228.13 211.12 227.72Q211.28 227.31 211.94 226.98Q212.63 226.64 213.05 226.75Q213.46 226.87 213.78 227.6L216.8 234.66L219.76 227.74Q220.09 226.98 220.5 226.79Q220.91 226.59 221.69 226.98Q222.48 227.37 222.52 227.85Q222.57 228.32 222.27 228.91L218.11 237.59Q217.92 237.93 217.6 238.1Q217.28 238.28 216.8 238.28Z M232.01 238.37Q230.52 238.37 229.4 237.88Q228.29 237.4 227.54 236.56Q226.79 235.72 226.41 234.68Q226.03 233.63 226.03 232.5Q226.03 230.85 226.79 229.56Q227.55 228.27 228.9 227.54Q230.24 226.8 231.99 226.8Q233.23 226.8 234.18 227.19Q235.12 227.58 235.75 228.21Q236.38 228.85 236.72 229.61Q237.05 230.36 237.05 231.08Q237.05 232.3 236.46 232.85Q235.88 233.4 235 233.4H228.93Q228.95 234.18 229.43 234.76Q229.9 235.33 230.62 235.64Q231.35 235.95 232.11 235.95Q232.68 235.95 233.13 235.88Q233.58 235.81 233.9 235.71Q234.22 235.61 234.46 235.49Q234.7 235.38 234.91 235.29Q235.12 235.19 235.3 235.17Q235.56 235.15 235.81 235.29Q236.06 235.42 236.22 235.77Q236.36 236 236.42 236.19Q236.48 236.39 236.48 236.57Q236.48 237.03 235.92 237.44Q235.37 237.84 234.37 238.1Q233.37 238.37 232.01 238.37ZM228.93 231.77H233.65Q234.04 231.77 234.25 231.64Q234.45 231.51 234.45 231.1Q234.45 230.57 234.13 230.15Q233.81 229.72 233.26 229.48Q232.7 229.24 231.97 229.24Q231.12 229.24 230.43 229.57Q229.74 229.9 229.33 230.48Q228.93 231.05 228.93 231.77Z"};
+  var DEFAUT = "jardin"; // thème utilisé quand jouer() est appelé sans thème
   var NS = "http://www.w3.org/2000/svg";
-
   function el(tag, attrs, parent) {
     var n = document.createElementNS(NS, tag);
     for (var k in attrs) n.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(n);
     return n;
   }
+  function div(css, parent) { var d = document.createElement("div"); d.style.cssText = css; if (parent) parent.appendChild(d); return d; }
+  function hasard(a, b) { return a + Math.random() * (b - a); }
 
-  function carillon() {
-    try {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      var ac = new AC();
-      if (ac.resume) ac.resume();
-      return function (t0) {
-        if (ac.state !== "running") return;
-        var t = ac.currentTime + (t0 || 0);
-        [[1318.5, 0, 0.11], [1975.5, 0.09, 0.08], [2637, 0.18, 0.04]].forEach(function (n) {
-          var o = ac.createOscillator(), g = ac.createGain();
-          o.type = "sine"; o.frequency.value = n[0];
-          g.gain.setValueAtTime(0, t + n[1]);
-          g.gain.linearRampToValueAtTime(n[2], t + n[1] + 0.012);
-          g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 1.4);
-          o.connect(g); g.connect(ac.destination);
-          o.start(t + n[1]); o.stop(t + n[1] + 1.5);
-        });
-      };
-    } catch (e) { return null; }
+  /* ---------- Sons (Web Audio, rien à télécharger) ---------- */
+  function synthe(ac) {
+    var sortie = ac.createGain(); sortie.gain.value = 0.9; sortie.connect(ac.destination);
+    return {
+      ac: ac,
+      note: function (f, t, dur, o) {
+        o = o || {};
+        var osc = ac.createOscillator(), g = ac.createGain(), dest = g;
+        osc.type = o.type || "sine"; osc.frequency.setValueAtTime(f, t);
+        if (o.vibrato) { var lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.006; lfo.connect(lg); lg.connect(osc.frequency); lfo.start(t); lfo.stop(t + dur + 0.1); }
+        if (o.filtre) { var flt = ac.createBiquadFilter(); flt.type = "lowpass"; flt.frequency.value = o.filtre; osc.connect(flt); flt.connect(g); } else osc.connect(g);
+        var v = o.vol || 0.08, att = o.att || 0.012;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(v, t + att);
+        if (o.tenu) { g.gain.setValueAtTime(v, t + dur - 0.08); g.gain.linearRampToValueAtTime(0, t + dur); }
+        else g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        dest.connect(sortie); osc.start(t); osc.stop(t + dur + 0.05);
+      },
+      bruit: function (t, dur, o) {
+        o = o || {};
+        var n = Math.floor(ac.sampleRate * dur), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+        var src = ac.createBufferSource(); src.buffer = buf;
+        var flt = ac.createBiquadFilter(); flt.type = o.type || "bandpass"; flt.Q.value = o.q || 1;
+        flt.frequency.setValueAtTime(o.de || 800, t);
+        if (o.a) flt.frequency.exponentialRampToValueAtTime(o.a, t + dur);
+        var g = ac.createGain(), v = o.vol || 0.1;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(v, t + (o.att || dur * 0.4));
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        src.connect(flt); flt.connect(g); g.connect(sortie); src.start(t); src.stop(t + dur);
+      }
+    };
   }
+
+  /* ---------- Les thèmes ---------- */
+  var GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
+  var THEMES = {
+    /* L'original, inchangé */
+    studio: {
+      nom: "Loucoume Interactive", fond: "#FFF6EF",
+      ciel: "radial-gradient(60% 50% at 15% 10%,rgba(255,201,163,.55),transparent 70%),radial-gradient(55% 40% at 88% 68%,rgba(255,156,198,.45),transparent 70%),linear-gradient(180deg,rgba(255,246,239,0) 82%,#FFF6EF 94%),linear-gradient(135deg,#FFF6EF,#FFEFF3 55%,#FCE9F4)",
+      degrade: ["#FFB98A", "#FF6FAE"], trait: "#fff", triangle: "#FFE27A",
+      lettres: { fill: "#3A2433" }, sous: "#FF6F93",
+      eclats: { forme: "rond", couleurs: ["#FFE27A", "#FF8FBF", "#FFB98A"], n: 9 },
+      son: function (s, t) { [[1318.5, 0, 0.11], [1975.5, 0.09, 0.08], [2637, 0.18, 0.04]].forEach(function (n) { s.note(n[0], t + n[1], 1.4, { vol: n[2] }); }); }
+    },
+
+    /* Jardin Sonore : nuit au jardin, lucioles, rayons de lumière qui chantent */
+    jardin: {
+      nom: "Jardin Sonore", fond: "#1F2656",
+      ciel: "radial-gradient(38% 22% at 22% 12%,rgba(230,236,255,.5),rgba(230,236,255,.12) 45%,transparent 70%),linear-gradient(180deg,#1F2656 0%,#2B3E6E 38%,#356A68 74%,#3B7864 100%)",
+      degrade: ["#7CC4A6", "#3E8C74"], trait: "#FFFFFF", triangle: "#FFE27A",
+      lueur: "#8FF0FF",
+      lettres: { fill: "#FFFFFF", lueur: true }, sous: "#CDB9FF",
+      eclats: { forme: "petale", couleurs: ["#FF8FC8", "#B49BFF", "#FFB45E", "#FFE27A"], n: 12 },
+      badge: function (b, defs) {
+        el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "none", stroke: "#2A2342", "stroke-width": 6 }, b);
+        // brins d'herbe comme sur les cases du jeu
+        [[22, 100, 24, 92], [28, 102, 29, 95], [92, 22, 94, 15], [99, 24, 99, 18], [100, 98, 102, 91]].forEach(function (h) {
+          el("path", { d: "M" + h[0] + " " + h[1] + " L" + h[2] + " " + h[3], stroke: "#2F6E5B", "stroke-width": 2.4, "stroke-linecap": "round", opacity: .7 }, b);
+        });
+      },
+      decor: function (voile, A) {
+        // lune
+        var lune = div("position:absolute;left:14%;top:7%;width:22vmin;height:22vmin;border-radius:50%;background:radial-gradient(circle at 40% 40%,#F4F5FF,#D9DDF5 60%,#C3C8EA);box-shadow:0 0 60px 20px rgba(220,228,255,.25);opacity:.85", voile);
+        A(lune, [{ transform: "translateY(12px)", opacity: 0 }, { transform: "translateY(0)", opacity: .85 }], { duration: 1200, easing: "ease-out" });
+        // haies en bas
+        var haie = document.createElementNS(NS, "svg"); haie.setAttribute("viewBox", "0 0 400 60"); haie.setAttribute("preserveAspectRatio", "none");
+        haie.style.cssText = "position:absolute;left:0;right:0;bottom:60px;width:100%;height:12vh";
+        for (var i = 0; i < 14; i++) el("circle", { cx: i * 31 + hasard(-6, 6), cy: hasard(26, 36), r: hasard(18, 28), fill: i % 2 ? "#2E5E52" : "#29564B" }, haie);
+        el("rect", { x: 0, y: 34, width: 400, height: 30, fill: "#2B5A4E" }, haie);
+        voile.appendChild(haie);
+        // lucioles
+        for (var k = 0; k < 22; k++) {
+          var f = div("position:absolute;left:" + hasard(4, 96) + "%;top:" + hasard(10, 92) + "%;width:5px;height:5px;border-radius:50%;background:#F4FFB0;box-shadow:0 0 8px 3px rgba(226,255,120,.55)", voile);
+          A(f, [{ opacity: 0, transform: "translate(0,0)" }, { opacity: 1, offset: .5 }, { opacity: .15, transform: "translate(" + hasard(-30, 30) + "px," + hasard(-40, 10) + "px)" }],
+            { delay: hasard(0, 900), duration: hasard(1400, 2600), easing: "ease-in-out", iterations: Infinity, direction: "alternate" });
+        }
+      },
+      // quand le triangle se pose, des ondes partent du badge comme les rayons du jeu
+      ondes: { couleur: "#BFF6FF", n: 3 },
+      son: function (s, t) { // petite boîte à musique en gamme pentatonique
+        [[784, 0], [1046.5, 0.07], [1318.5, 0.14], [1568, 0.21], [2093, 0.32]].forEach(function (n, i) {
+          s.note(n[0], t + n[1], 1.8, { vol: 0.07 - i * 0.008 });
+          s.note(n[0] * 2, t + n[1], 0.6, { vol: 0.015, type: "triangle" });
+        });
+      }
+    },
+
+    /* Souffle : aquarelle sur papier, graines de pissenlit dans le vent */
+    souffle: {
+      nom: "Souffle", fond: "#F3E8D6",
+      ciel: GRAIN + ",radial-gradient(30% 18% at 62% 60%,rgba(255,236,190,.9),rgba(255,226,170,0) 70%),linear-gradient(180deg,#DCE6E6 0%,#EADFCB 38%,#F2DDBB 62%,#EFD9B6 100%)",
+      degrade: ["#A9C795", "#6E9A6A"], trait: "#FFF7E8", triangle: "#E9B44C",
+      aquarelle: true,
+      lettres: { fill: "#3B2A22", rugueux: true }, sous: "#8C6A4C",
+      eclats: { forme: "graine", couleurs: ["#FFFFFF"], n: 7 },
+      badge: function (b) {
+        // bord d'aquarelle : le pigment s'accumule sur le contour
+        el("rect", { x: 7, y: 7, width: 106, height: 106, rx: 34, fill: "none", stroke: "#557F55", "stroke-width": 3, opacity: .45, filter: "url(#li-flou)" }, b);
+        el("ellipse", { cx: 40, cy: 34, rx: 26, ry: 16, fill: "#D4E6C2", opacity: .45, filter: "url(#li-flou)" }, b);
+      },
+      decor: function (voile, A) {
+        var c = document.createElementNS(NS, "svg"); c.setAttribute("viewBox", "0 0 400 120"); c.setAttribute("preserveAspectRatio", "none");
+        c.style.cssText = "position:absolute;left:0;right:0;bottom:60px;width:100%;height:24vh";
+        var defs = el("defs", {}, c), f = el("filter", { id: "li-colline" }, defs);
+        el("feTurbulence", { type: "fractalNoise", baseFrequency: ".04", numOctaves: 2, seed: 3 }, f);
+        el("feDisplacementMap", { in: "SourceGraphic", scale: 7 }, f);
+        el("path", { d: "M-10 70 Q60 30 140 55 T300 45 T420 60 V130 H-10Z", fill: "#B9C9A4", opacity: .8, filter: "url(#li-colline)" }, c);
+        el("path", { d: "M-10 92 Q90 60 200 84 T420 78 V130 H-10Z", fill: "#93B07E", opacity: .9, filter: "url(#li-colline)" }, c);
+        el("path", { d: "M-10 108 Q120 92 240 104 T420 100 V130 H-10Z", fill: "#7A9C68", filter: "url(#li-colline)" }, c);
+        voile.appendChild(c);
+        A(c, [{ transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 1100, easing: "ease-out" });
+        // nuages peints
+        [[8, 14, 34], [62, 22, 26]].forEach(function (n, i) {
+          var nu = div("position:absolute;left:" + n[0] + "%;top:" + n[1] + "%;width:" + n[2] + "vw;height:" + n[2] * 0.36 + "vw;border-radius:50%;background:rgba(255,253,248,.75);filter:blur(4px)", voile);
+          A(nu, [{ transform: "translateX(-14px)", opacity: 0 }, { transform: "translateX(" + (10 + i * 8) + "px)", opacity: 1 }], { duration: 2800, easing: "ease-out" });
+        });
+        // coup de vent qui traverse l'écran juste avant que le triangle se pose
+        var vent = document.createElementNS(NS, "svg"); vent.setAttribute("viewBox", "0 0 400 80");
+        vent.style.cssText = "position:absolute;left:0;top:30%;width:100%;height:14vh;overflow:visible";
+        var v = el("path", { d: "M-40 50 C60 20 140 70 220 40 S330 10 440 36", fill: "none", stroke: "#fff", "stroke-width": 2.2, "stroke-linecap": "round", opacity: .8, "stroke-dasharray": "90 600", "stroke-dashoffset": 90 }, vent);
+        voile.appendChild(vent);
+        A(v, [{ strokeDashoffset: 90, opacity: 0 }, { opacity: .8, offset: .2 }, { strokeDashoffset: -520, opacity: 0 }], { delay: 600, duration: 900, easing: "ease-in-out" });
+      },
+      son: function (s, t) { // une respiration, puis deux notes de harpe
+        s.bruit(t + 0.55, 0.95, { de: 380, a: 1400, q: 0.8, vol: 0.09, att: 0.45 });
+        s.note(1174.7, t + 1.11, 1.6, { type: "triangle", vol: 0.07, att: 0.004 });
+        s.note(1760, t + 1.24, 1.8, { type: "triangle", vol: 0.05, att: 0.004 });
+        s.note(587.3, t + 1.11, 1.6, { vol: 0.03 });
+      }
+    },
+
+    /* Fanfare : affiche des années 30, soleil rayonnant, fanions, cuivres */
+    fanfare: {
+      nom: "Fanfare", fond: "#F2E4C8",
+      ciel: GRAIN + ",radial-gradient(70% 60% at 50% 45%,transparent 55%,rgba(120,70,30,.18))",
+      rayons: true,
+      degrade: ["#E0613F", "#B23A2A"], trait: "#FBF0D9", triangle: "#F2C14E",
+      encre: "#23233A",
+      lettres: { fill: "#D9573D", contour: "#23233A", ombre: [2.6, 2.6, "#23233A"] }, sous: "#2F6F6A",
+      eclats: { forme: "confetti", couleurs: ["#D9573D", "#2F6F6A", "#F2C14E", "#23233A"], n: 16 },
+      badge: function (b) {
+        el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "none", stroke: "#E9B44C", "stroke-width": 5 }, b);
+        el("rect", { x: 2.5, y: 2.5, width: 115, height: 115, rx: 35, fill: "none", stroke: "#23233A", "stroke-width": 3 }, b);
+        el("rect", { x: 11.5, y: 11.5, width: 97, height: 97, rx: 27, fill: "none", stroke: "#23233A", "stroke-width": 1.4, opacity: .55 }, b);
+      },
+      decor: function (voile, A) {
+        // guirlande de fanions qui tombe du haut
+        var g = document.createElementNS(NS, "svg"); g.setAttribute("viewBox", "0 0 400 70"); g.setAttribute("preserveAspectRatio", "none");
+        g.style.cssText = "position:absolute;left:-2%;width:104%;top:calc(60px + 5vh);height:11vh;overflow:visible";
+        var cols = ["#D9573D", "#2F6F6A", "#F2C14E"];
+        function corde(y0, fl, dec) {
+          el("path", { d: "M0 " + y0 + " Q200 " + (y0 + fl * 2) + " 400 " + y0, fill: "none", stroke: "#23233A", "stroke-width": 1.6 }, g);
+          for (var i = 0; i < 12; i++) {
+            var x = 14 + i * 33 + dec, u = x / 400, y = y0 + 2 * fl * 2 * u * (1 - u);
+            el("path", { d: "M" + (x - 10) + " " + y + " L" + (x + 10) + " " + y + " L" + x + " " + (y + 22) + "Z", fill: cols[i % 3], stroke: "#23233A", "stroke-width": 1.2, "stroke-linejoin": "round" }, g);
+          }
+        }
+        corde(4, 9, 0);
+        voile.appendChild(g);
+        A(g, [{ transform: "translateY(-160%)" }, { transform: "translateY(6%)", offset: .7 }, { transform: "translateY(0)" }], { delay: 120, duration: 700, easing: "ease-out" });
+      },
+      son: function (s, t) { // ta-ta-ta-taaa de cuivres
+        var o = { type: "sawtooth", filtre: 1700, vol: 0.05, att: 0.02, tenu: true };
+        s.note(392, t + 0.80, 0.09, o); s.note(392, t + 0.91, 0.09, o); s.note(523.3, t + 1.0, 0.1, o);
+        var l = { type: "sawtooth", filtre: 2200, vol: 0.055, att: 0.03, tenu: true, vibrato: true };
+        s.note(659.3, t + 1.11, 0.75, l); s.note(523.3, t + 1.11, 0.75, Object.assign({}, l, { vol: 0.035 })); s.note(392, t + 1.11, 0.75, Object.assign({}, l, { vol: 0.03 }));
+        s.bruit(t + 1.11, 0.5, { type: "highpass", de: 6000, vol: 0.04, att: 0.005 }); // coup de cymbale
+      }
+    },
+
+    /* Éclats : pixel art, ciel du soir étoilé, badge en verre qui se brise en éclats */
+    eclats: {
+      nom: "Éclats", fond: "#191230",
+      ciel: "linear-gradient(180deg,#140E2A 0 30%,#1B1336 30% 46%,#24183F 46% 58%,#2E1D48 58% 67%,#3B2350 67% 74%,#552C52 74% 80%,#7A3A4E 80% 86%,#A24C45 86% 91%,#C4643C 91%)",
+      degrade: ["#A8ECF6", "#4E9FD6"], trait: "#FFFFFF", triangle: "#FF5C8A",
+      pixel: 3, saccade: true,
+      lettres: { fill: "#F7E3B4", ombre: [0, 4, "#B8404A"] }, sous: "#F2A65A",
+      eclats: { forme: "carre", couleurs: ["#A8ECF6", "#FF5C8A", "#FFFFFF", "#F2A65A"], n: 16 },
+      badge: function (b) {
+        el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "none", stroke: "#191230", "stroke-width": 5 }, b);
+        // reflets de verre
+        el("path", { d: "M20 30 Q22 18 34 16", fill: "none", stroke: "#fff", "stroke-width": 5, "stroke-linecap": "round", opacity: .8 }, b);
+        el("path", { d: "M18 44 L18 40", fill: "none", stroke: "#fff", "stroke-width": 5, "stroke-linecap": "round", opacity: .8 }, b);
+        el("path", { d: "M100 96 L104 92", fill: "none", stroke: "#2F6FA8", "stroke-width": 5, "stroke-linecap": "round", opacity: .6 }, b);
+      },
+      decor: function (voile, A) {
+        for (var k = 0; k < 46; k++) {
+          var t = Math.random() < .2 ? 6 : 3;
+          var e = div("position:absolute;left:" + hasard(0, 100) + "%;top:" + hasard(0, 62) + "%;width:" + t + "px;height:" + t + "px;background:" + (k % 5 ? "#E8E2FF" : "#FFD08A") + ";image-rendering:pixelated", voile);
+          A(e, [{ opacity: .15 }, { opacity: 1 }], { delay: hasard(0, 1200), duration: hasard(400, 1100), easing: "steps(3)", iterations: Infinity, direction: "alternate" });
+        }
+        // nuages pixel en bas
+        var c = document.createElementNS(NS, "svg"); c.setAttribute("viewBox", "0 0 100 20"); c.setAttribute("preserveAspectRatio", "none");
+        c.style.cssText = "position:absolute;left:0;right:0;bottom:60px;width:100%;height:14vh;shape-rendering:crispEdges";
+        [[0, 10, 30, 10, "#5A2E52"], [20, 7, 26, 13, "#6E3A58"], [52, 9, 34, 11, "#5A2E52"], [70, 5, 30, 15, "#6E3A58"], [-4, 14, 108, 6, "#3B2350"]].forEach(function (r) {
+          el("rect", { x: r[0], y: r[1], width: r[2], height: r[3], fill: r[4] }, c);
+          el("rect", { x: r[0] + 3, y: r[1] - 2, width: r[2] - 6, height: 2, fill: r[4] }, c);
+        });
+        voile.appendChild(c);
+      },
+      son: function (s, t) { // arpège 8 bits + verre qui se brise
+        [[1046.5, 0], [1318.5, 0.05], [1568, 0.1], [2093, 0.15]].forEach(function (n, i) { s.note(n[0], t + 1.11 + n[1], i === 3 ? 0.5 : 0.09, { type: "square", vol: 0.03, att: 0.003, tenu: i < 3 }); });
+        s.bruit(t + 1.11, 0.35, { type: "highpass", de: 3500, vol: 0.07, att: 0.003 });
+        [2900, 3700, 4400].forEach(function (f, i) { s.note(f, t + 1.13 + i * 0.04, 0.5, { vol: 0.02 }); });
+      }
+    }
+  };
 
   function jouer(opts) {
     opts = opts || {};
+    var T = THEMES[opts.theme || DEFAUT] || THEMES.studio;
     return new Promise(function (fin) {
       var calme = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var anims = [];
+      function A(n, kf, o) { var x = n.animate(kf, Object.assign({ fill: "both" }, o)); anims.push(x); return x; }
+
       var voile = document.createElement("div");
       voile.setAttribute("aria-label", "Loucoume Interactive");
-      // Fond crème aussi sous le voile (et sous les barres d'Android) : sinon la couleur de fond du jeu
-      // apparaît un instant en bas de l'écran au démarrage.
-      var CREME = "#FFF6EF", racine = document.documentElement, avant = [racine.style.background, document.body.style.background];
-      racine.style.background = document.body.style.background = CREME;
-      // Le voile part de la crème unie de l'écran de lancement d'Android, puis ses reflets pêche et rose apparaissent en douceur :
-      // aucun saut de couleur entre le lancement du téléphone et l'intro.
-      voile.style.cssText = "position:fixed;inset:-60px 0;z-index:2147483000;display:grid;place-items:center;cursor:pointer;" +
-        "background:" + CREME + ";-webkit-tap-highlight-color:transparent";
-      var teinte = document.createElement("div");
-      teinte.style.cssText = "position:absolute;inset:0;pointer-events:none;" +
-        "background:radial-gradient(60% 50% at 15% 10%,rgba(255,201,163,.55),transparent 70%)," +
-        "radial-gradient(55% 40% at 88% 68%,rgba(255,156,198,.45),transparent 70%)," +
-        // le bas reste crème unie : au tout premier instant, Android peut montrer le fond de la fenêtre
-        // (crème) sous le jeu ; ainsi aucune bande ne se voit.
-        "linear-gradient(180deg,rgba(255,246,239,0) 82%," + CREME + " 94%)," +
-        "linear-gradient(135deg,#FFF6EF,#FFEFF3 55%,#FCE9F4)";
-      voile.appendChild(teinte);
+      // Le fond de la page prend la couleur de base du thème (la même que l'écran de lancement d'Android) : aucune bande, aucun saut.
+      var FOND = T.fond, racine = document.documentElement, avant = [racine.style.background, document.body.style.background];
+      racine.style.background = document.body.style.background = FOND;
+      voile.style.cssText = "position:fixed;inset:-60px 0;z-index:2147483000;display:grid;place-items:center;cursor:pointer;overflow:hidden;" +
+        "background:" + FOND + ";-webkit-tap-highlight-color:transparent";
+      var teinte = div("position:absolute;inset:0;pointer-events:none;background:" + T.ciel, voile);
+      if (T.rayons) {
+        var r = div("position:absolute;left:50%;top:50%;width:250vmax;height:250vmax;margin:-125vmax 0 0 -125vmax;pointer-events:none;" +
+          "background:repeating-conic-gradient(from 0deg,rgba(214,150,80,.20) 0 6deg,rgba(214,150,80,0) 6deg 12deg)", teinte);
+        A(r, [{ transform: "rotate(0)" }, { transform: "rotate(14deg)" }], { duration: 3000, easing: "linear" });
+      }
+      if (T.decor && !calme) T.decor(teinte, A);
 
       var svg = el("svg", { viewBox: "0 0 340 256", role: "img" });
-      svg.style.cssText = "width:min(78vw,420px);height:auto;overflow:visible";
+      svg.style.cssText = "width:min(78vw,420px);height:auto;overflow:visible;position:relative";
       var defs = el("defs", {}, svg);
       var g1 = el("linearGradient", { id: "li-g", x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
-      el("stop", { offset: 0, "stop-color": "#FFB98A" }, g1); el("stop", { offset: 1, "stop-color": "#FF6FAE" }, g1);
+      el("stop", { offset: 0, "stop-color": T.degrade[0] }, g1); el("stop", { offset: 1, "stop-color": T.degrade[1] }, g1);
       var g2 = el("linearGradient", { id: "li-h", x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
       el("stop", { offset: 0, "stop-color": "#fff", "stop-opacity": ".22" }, g2); el("stop", { offset: ".5", "stop-color": "#fff", "stop-opacity": "0" }, g2);
       var clip = el("clipPath", { id: "li-c" }, defs);
       el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32 }, clip);
+      var f;
+      f = el("filter", { id: "li-flou", x: "-20%", y: "-20%", width: "140%", height: "140%" }, defs); el("feGaussianBlur", { stdDeviation: 2 }, f);
+      if (T.lueur || T.lettres.lueur) {
+        f = el("filter", { id: "li-lueur", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+        el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: 3.2, result: "b" }, f);
+        el("feColorMatrix", { in: "b", values: "0 0 0 0 .56  0 0 0 0 .94  0 0 0 0 1  0 0 0 1.4 0", result: "c" }, f);
+        var m = el("feMerge", {}, f); el("feMergeNode", { in: "c" }, m); el("feMergeNode", { in: "SourceGraphic" }, m);
+      }
+      if (T.aquarelle) { // bords irréguliers d'aquarelle / de pinceau
+        f = el("filter", { id: "li-aqua", x: "-10%", y: "-10%", width: "120%", height: "120%" }, defs);
+        el("feTurbulence", { type: "fractalNoise", baseFrequency: ".045", numOctaves: 3, seed: 7, result: "t" }, f);
+        el("feDisplacementMap", { in: "SourceGraphic", in2: "t", scale: 7 }, f);
+        f = el("filter", { id: "li-pinceau", x: "-10%", y: "-10%", width: "120%", height: "120%" }, defs);
+        el("feTurbulence", { type: "fractalNoise", baseFrequency: ".9", numOctaves: 2, seed: 2, result: "t" }, f);
+        el("feDisplacementMap", { in: "SourceGraphic", in2: "t", scale: 2.4 }, f);
+      }
+      if (T.pixel) { // tout le logo est rendu en gros pixels
+        var p = T.pixel, h = p / 2;
+        f = el("filter", { id: "li-pixel", x: 0, y: 0, width: 340, height: 256, filterUnits: "userSpaceOnUse", primitiveUnits: "userSpaceOnUse" }, defs);
+        el("feFlood", { x: h - 0.5, y: h - 0.5, width: 1, height: 1 }, f);
+        el("feComposite", { x: 0, y: 0, width: p, height: p, result: "cell" }, f);
+        el("feTile", { in: "cell", result: "grille" }, f);
+        el("feComposite", { in: "SourceGraphic", in2: "grille", operator: "in" }, f);
+        el("feMorphology", { operator: "dilate", radius: h }, f);
+      }
+      var scene = el("g", T.pixel ? { filter: "url(#li-pixel)" } : {}, svg);
 
       // Badge (dans sa boîte de 120, placé à x=110, y=10)
-      var badge = el("g", {}, svg);
+      var badge = el("g", {}, scene);
       badge.style.transformOrigin = "170px 70px";
       var b = el("g", { transform: "translate(110 10)" }, badge);
-      el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "url(#li-g)" }, b);
-      el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "url(#li-h)" }, b);
+      var fondBadge = el("g", T.aquarelle ? { filter: "url(#li-aqua)" } : {}, b);
+      el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "url(#li-g)" }, fondBadge);
+      el("rect", { x: 6, y: 6, width: 108, height: 108, rx: 32, fill: "url(#li-h)" }, fondBadge);
+      if (T.badge) T.badge(fondBadge, defs);
       var reflet = el("g", { "clip-path": "url(#li-c)" }, b);
       var bande = el("rect", { x: -40, y: -20, width: 28, height: 170, fill: "#fff", opacity: ".35", transform: "rotate(20 60 60)" }, reflet);
       bande.style.transformOrigin = "60px 60px";
-      var L = el("path", { d: "M35 30 V84 H64", fill: "none", stroke: "#fff", "stroke-width": 16, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": 84, "stroke-dashoffset": 84 }, b);
-      var I = el("path", { d: "M83 84 V57", fill: "none", stroke: "#fff", "stroke-width": 16, "stroke-linecap": "round", "stroke-dasharray": 28, "stroke-dashoffset": 28 }, b);
-      var tri = el("path", { d: "M77.5 28.5 L77.5 46.5 L93 37.5Z", fill: "#FFE27A", stroke: "#FFE27A", "stroke-width": 6, "stroke-linejoin": "round", opacity: 0 }, b);
+      var traits = el("g", T.lueur ? { filter: "url(#li-lueur)" } : T.aquarelle ? { filter: "url(#li-pinceau)" } : {}, b);
+      if (T.encre) { // contour d'encre sous les traits (affiche)
+        var Lo = el("path", { d: "M35 30 V84 H64", fill: "none", stroke: T.encre, "stroke-width": 21, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": 84, "stroke-dashoffset": 84 }, traits);
+        var Io = el("path", { d: "M83 84 V57", fill: "none", stroke: T.encre, "stroke-width": 21, "stroke-linecap": "round", "stroke-dasharray": 28, "stroke-dashoffset": 28 }, traits);
+      }
+      var L = el("path", { d: "M35 30 V84 H64", fill: "none", stroke: T.trait, "stroke-width": 16, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": 84, "stroke-dashoffset": 84 }, traits);
+      var I = el("path", { d: "M83 84 V57", fill: "none", stroke: T.trait, "stroke-width": 16, "stroke-linecap": "round", "stroke-dasharray": 28, "stroke-dashoffset": 28 }, traits);
+      var tri = el("path", { d: "M77.5 28.5 L77.5 46.5 L93 37.5Z", fill: T.triangle, stroke: T.encre || T.triangle, "stroke-width": T.encre ? 3 : 6, "stroke-linejoin": "round", opacity: 0 }, T.lueur ? traits : b);
       tri.style.transformOrigin = "83px 37.5px";
 
-      // Petites étincelles autour du triangle
-      var eclats = [];
-      for (var k = 0; k < 9; k++) {
-        var a = (k / 9) * Math.PI * 2 - 0.3;
-        var c = el("circle", { cx: 193, cy: 47.5, r: k % 3 ? 2.6 : 3.6, fill: ["#FFE27A", "#FF8FBF", "#FFB98A"][k % 3], opacity: 0 }, svg);
-        c.style.transformBox = "fill-box"; c.style.transformOrigin = "center"; // l'étincelle grandit sur place, pas depuis le coin du logo
-        eclats.push([c, Math.cos(a), Math.sin(a)]);
+      // Ondes (Jardin Sonore)
+      var ondes = [];
+      if (T.ondes) for (var o = 0; o < T.ondes.n; o++) {
+        var c0 = el("rect", { x: 116, y: 16, width: 108, height: 108, rx: 32, fill: "none", stroke: T.ondes.couleur, "stroke-width": 2, opacity: 0 }, scene);
+        c0.style.transformBox = "fill-box"; c0.style.transformOrigin = "center"; ondes.push(c0);
       }
 
-      // Texte
-      var lettres = D.big.map(function (d) { var p = el("path", { d: d, fill: "#3A2433", opacity: 0 }, svg); return p; });
-      var sous = el("path", { d: D.small, fill: "#FF6F93", opacity: 0 }, svg);
+      // Éclats autour du triangle : forme selon le thème
+      var E = T.eclats, eclats = [];
+      for (var k = 0; k < E.n; k++) {
+        var a = (k / E.n) * Math.PI * 2 - 0.3, coul = E.couleurs[k % E.couleurs.length], n;
+        if (E.forme === "petale") n = el("ellipse", { cx: 193, cy: 47.5, rx: 4.2, ry: 2, fill: coul, transform: "rotate(" + (a * 57) + " 193 47.5)" }, scene);
+        else if (E.forme === "confetti") n = el("rect", { x: 189, y: 45, width: 8, height: 4.5, fill: coul }, scene);
+        else if (E.forme === "carre") n = el("rect", { x: 191, y: 45.5, width: k % 3 ? 4 : 6, height: k % 3 ? 4 : 6, fill: coul }, scene);
+        else if (E.forme === "graine") {
+          n = el("g", {}, svg);
+          el("path", { d: "M193 47.5 L193 56", stroke: "#7A6450", "stroke-width": 1, "stroke-linecap": "round" }, n);
+          for (var j = 0; j < 9; j++) { var aa = Math.PI + j * Math.PI / 8; el("path", { d: "M193 47.5 l" + (Math.cos(aa) * 6).toFixed(2) + " " + (Math.sin(aa) * 6).toFixed(2), stroke: "#FFFDF6", "stroke-width": .8, "stroke-linecap": "round" }, n); }
+          el("circle", { cx: 193, cy: 56.5, r: 1.3, fill: "#6A5240" }, n);
+        }
+        else n = el("circle", { cx: 193, cy: 47.5, r: k % 3 ? 2.6 : 3.6, fill: coul }, scene);
+        n.setAttribute("opacity", 0);
+        n.style.transformBox = "fill-box"; n.style.transformOrigin = "center";
+        eclats.push([n, Math.cos(a), Math.sin(a)]);
+      }
 
-      svg.style.position = "relative";
+      // Texte (mêmes lettres partout, seule la matière change)
+      var LT = T.lettres;
+      var lettres = D.big.map(function (d) {
+        var g = el("g", { opacity: 0 }, scene);
+        if (LT.ombre) el("path", { d: d, fill: LT.ombre[2], transform: "translate(" + LT.ombre[0] + " " + LT.ombre[1] + ")" }, g);
+        var at = { d: d, fill: LT.fill };
+        if (LT.contour) { at.stroke = LT.contour; at["stroke-width"] = 1.6; at["paint-order"] = "stroke"; at["stroke-linejoin"] = "round"; }
+        if (LT.lueur) at.filter = "url(#li-lueur)";
+        if (LT.rugueux) at.filter = "url(#li-pinceau)";
+        el("path", at, g);
+        return g;
+      });
+      var sous = el("path", { d: D.small, fill: T.sous, opacity: 0 }, scene);
+
       voile.appendChild(svg);
       document.body.appendChild(voile);
-      var debut = document.getElementById("avant-intro"); // fond crème posé dans la page pour la toute première image
+      var debut = document.getElementById("avant-intro");
       if (debut) debut.remove();
 
-      var anims = [];
-      function A(n, kf, o) { var x = n.animate(kf, Object.assign({ fill: "both" }, o)); anims.push(x); return x; }
       A(teinte, [{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: "ease-out" });
       var BACK = "cubic-bezier(.34,1.56,.64,1)";
-      var fini = false;
+      var SAC = T.saccade ? function (n) { return "steps(" + n + ")"; } : null; // animation « par images », façon pixel art
+      var fini = false, ac = null, acPropre = false;
       function terminer(rapide) {
         if (fini) return; fini = true;
-        var s = voile.animate([{ opacity: 1 }, { opacity: 0 }], { duration: rapide ? 220 : 420, easing: "ease-in", fill: "forwards" });
+        var s = voile.animate([{ opacity: 1 }, { opacity: 0 }], { duration: rapide ? 220 : 420, easing: T.saccade ? "steps(4)" : "ease-in", fill: "forwards" });
         if (!rapide) svg.animate([{ transform: "scale(1)" }, { transform: "scale(1.04)" }], { duration: 420, easing: "ease-in", fill: "forwards" });
-        s.onfinish = function () { anims.forEach(function (x) { x.cancel(); }); voile.remove(); racine.style.background = avant[0]; document.body.style.background = avant[1]; fin(); };
+        s.onfinish = function () { anims.forEach(function (x) { x.cancel(); }); voile.remove(); racine.style.background = avant[0]; document.body.style.background = avant[1];
+          // le contexte audio créé par l'intro est refermé ensuite : il ne doit pas rester en concurrence avec celui du jeu (Android)
+          if (acPropre && ac && ac.close) setTimeout(function () { try { ac.close(); } catch (e) { } }, 1600);
+          fin(); };
       }
       voile.addEventListener("pointerdown", function () { terminer(true); });
 
       if (calme) {
-        L.setAttribute("stroke-dashoffset", 0); I.setAttribute("stroke-dashoffset", 0); tri.setAttribute("opacity", 1);
+        [L, I, Lo, Io].forEach(function (x) { if (x) x.setAttribute("stroke-dashoffset", 0); }); tri.setAttribute("opacity", 1);
         lettres.concat([sous]).forEach(function (p) { p.setAttribute("opacity", 1); });
         A(svg, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
         setTimeout(function () { terminer(false); }, 1800);
         return;
       }
 
-      var son = opts.son === false ? null : carillon();
+      if (opts.son !== false) {
+        try {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            ac = opts.audio || new AC(); acPropre = !opts.audio; if (ac.resume) ac.resume();
+            setTimeout(function () { if (ac.state === "running") T.son(synthe(ac), ac.currentTime - 0.25); }, 250);
+          }
+        } catch (e) { }
+      }
 
       A(badge, [
         { transform: "scale(.2) rotate(-14deg)", opacity: 0 },
         { transform: "scale(1.1) rotate(4deg)", opacity: 1, offset: .6 },
         { transform: "scale(.97) rotate(-1deg)", offset: .82 },
         { transform: "scale(1) rotate(0)", opacity: 1 }
-      ], { duration: 620, easing: "ease-out" });
-      A(L, [{ strokeDashoffset: 84 }, { strokeDashoffset: 0 }], { delay: 360, duration: 420, easing: "cubic-bezier(.6,0,.2,1)" });
-      A(I, [{ strokeDashoffset: 28 }, { strokeDashoffset: 0 }], { delay: 640, duration: 240, easing: "ease-out" });
+      ], { duration: 620, easing: SAC ? SAC(9) : "ease-out" });
+      [L, Lo].forEach(function (x) { if (x) A(x, [{ strokeDashoffset: 84 }, { strokeDashoffset: 0 }], { delay: 360, duration: 420, easing: SAC ? SAC(7) : "cubic-bezier(.6,0,.2,1)" }); });
+      [I, Io].forEach(function (x) { if (x) A(x, [{ strokeDashoffset: 28 }, { strokeDashoffset: 0 }], { delay: 640, duration: 240, easing: SAC ? SAC(4) : "ease-out" }); });
       A(tri, [
         { transform: "translateY(-46px) scale(.6) rotate(-30deg)", opacity: 0 },
         { transform: "translateY(3px) scale(1.15,.85) rotate(0)", opacity: 1, offset: .62 },
         { transform: "translateY(-4px) scale(.95,1.06)", opacity: 1, offset: .82 },
         { transform: "translateY(0) scale(1)", opacity: 1 }
-      ], { delay: 820, duration: 460, easing: "ease-in" });
-      if (son) setTimeout(function () { son(0); }, 1110);
+      ], { delay: 820, duration: 460, easing: SAC ? SAC(8) : "ease-in" });
+      ondes.forEach(function (c, i) {
+        A(c, [{ transform: "scale(1)", opacity: .9 }, { transform: "scale(" + (1.7 + i * .25) + ")", opacity: 0 }], { delay: 1110 + i * 160, duration: 900, easing: "ease-out" });
+      });
       eclats.forEach(function (e, i) {
-        A(e[0], [
-          { transform: "translate(0,0) scale(.4)", opacity: 0 },
-          { transform: "translate(" + e[1] * 12 + "px," + e[2] * 12 + "px) scale(1)", opacity: 1, offset: .25 },
-          { transform: "translate(" + e[1] * 34 + "px," + e[2] * 34 + "px) scale(.2)", opacity: 0 }
-        ], { delay: 1100 + (i % 3) * 25, duration: 620, easing: "ease-out" });
+        var dx = e[1], dy = e[2], fx = E.forme;
+        if (fx === "graine") { // les graines s'envolent avec le vent, lentement
+          var vx = 30 + Math.random() * 60, vy = -20 - Math.random() * 50;
+          A(e[0], [
+            { transform: "translate(0,0) rotate(0)", opacity: 0 },
+            { transform: "translate(" + vx * .2 + "px," + vy * .2 + "px) rotate(" + (dx * 20) + "deg)", opacity: 1, offset: .15 },
+            { transform: "translate(" + vx + "px," + (vy - 10) + "px) rotate(" + (dx * 60) + "deg)", opacity: 0 }
+          ], { delay: 1080 + i * 50, duration: 1500, easing: "cubic-bezier(.2,.6,.4,1)" });
+        } else if (fx === "confetti" || fx === "carre") { // explosion puis chute
+          var dist = 18 + (i % 4) * 9, fall = fx === "carre" ? 46 : 60, rot = fx === "carre" ? 0 : (i % 2 ? 1 : -1) * 540;
+          A(e[0], [
+            { transform: "translate(0,0) rotate(0)", opacity: 0 },
+            { transform: "translate(" + dx * dist + "px," + dy * dist + "px) rotate(" + rot * .3 + "deg)", opacity: 1, offset: .25 },
+            { transform: "translate(" + dx * dist * 1.5 + "px," + (dy * dist + fall) + "px) rotate(" + rot + "deg)", opacity: 0 }
+          ], { delay: 1100 + (i % 3) * 20, duration: 950, easing: SAC ? SAC(10) : "cubic-bezier(.25,.6,.6,1)" });
+        } else {
+          var d1 = fx === "petale" ? 16 : 12, d2 = fx === "petale" ? 42 : 34;
+          A(e[0], [
+            { transform: "translate(0,0) scale(.4)", opacity: 0 },
+            { transform: "translate(" + dx * d1 + "px," + dy * d1 + "px) scale(1)", opacity: 1, offset: .25 },
+            { transform: "translate(" + dx * d2 + "px," + (dy * d2 + (fx === "petale" ? 10 : 0)) + "px) scale(.2)", opacity: 0 }
+          ], { delay: 1100 + (i % 3) * 25, duration: fx === "petale" ? 900 : 620, easing: "ease-out" });
+        }
       });
-      A(bande, [{ transform: "rotate(20deg) translateX(0)" }, { transform: "rotate(20deg) translateX(190px)" }], { delay: 1500, duration: 620, easing: "ease-in-out" });
+      A(bande, [{ transform: "rotate(20deg) translateX(0)" }, { transform: "rotate(20deg) translateX(190px)" }], { delay: 1500, duration: 620, easing: SAC ? SAC(8) : "ease-in-out" });
       lettres.forEach(function (p, i) {
-        A(p, [{ transform: "translateY(16px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { delay: 1150 + i * 55, duration: 420, easing: BACK });
+        A(p, [{ transform: "translateY(16px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { delay: 1150 + i * 55, duration: 420, easing: SAC ? SAC(5) : BACK });
       });
-      A(sous, [{ transform: "translateY(8px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { delay: 1650, duration: 420, easing: "ease-out" });
+      A(sous, [{ transform: "translateY(8px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { delay: 1650, duration: 420, easing: SAC ? SAC(4) : "ease-out" });
 
-      setTimeout(function () { terminer(false); }, 2650);
+      setTimeout(function () { terminer(false); }, 2700);
     });
   }
 
-  window.LoucoumeIntro = { jouer: jouer };
+  var themes = {};
+  for (var t in THEMES) themes[t] = { nom: THEMES[t].nom, fond: THEMES[t].fond };
+  window.LoucoumeIntro = { jouer: jouer, themes: themes };
 })();
 
 window.INTRO_STUDIO = LoucoumeIntro.jouer({ son: true });
@@ -642,6 +928,11 @@ const SON = (() => {
     s.connect(fl); fl.connect(g); g.connect(sortie || sortie0); g.connect(envoi);
     s.start(t0, Math.random()); s.stop(t0 + dur + 0.05);
   }
+  // grelots de traîneau (hiver) : un petit froissement aigu et quelques tintements
+  function grelots(t, v) {
+    bruit(t, 0.1, 7500, 1.5, 0.035 * v, 9000, busMus, 'highpass');
+    for (let i = 0; i < 4; i++) osc('sine', 4800 + hasard() * 2200, t + i * 0.014, 0.16, 0.01 * v, busMus, 0.002, 0.4);
+  }
   // instruments
   const ECH = {}, REFS = [57, 69, 81, 93];
   function tampon(nom, ref) {
@@ -791,8 +1082,30 @@ const SON = (() => {
       if (k === 8 && hasard() < 0.4) osc('sine', fq(hauteur(racine + 12)), t, 3, 0.012, busMus, 1.2, 1);
     } },
     nature: { c: 0.42, etape() { } },
+    // accueil en hiver : air traditionnel « Jingle Bells » (domaine public) à la boîte à musique, avec grelots
+    noel: { c: 0.23, etape(k, racine, t, c) {
+      const p = pas % 128, mes = p >> 3, r = 60, acc = NOEL_ACC[mes];
+      if (p % 8 === 0) for (const n of acc) osc('sine', fq(r - 12 + n), t, c * 8.5, 0.02, busMus, 0.3, 0.7);
+      if (p % 4 === 0) osc('triangle', fq(r - 24 + acc[p % 8 ? 2 : 0]), t, c * 3, 0.09, busMus, 0.01, 0.2);
+      if (p % 2 === 0) grelots(t, p % 4 ? 1 : 0.6);
+      for (const [st, n, l] of NOEL) if (st === p) {
+        I.boiteMus(r + n, t, 1); I.celesta(r + n + 12, t, 0.18);
+        if (l >= 4) I.cloche(r + n + 12, t, 0.1);
+      }
+    } },
   };
-  const styleActuel = () => apercu || (titre ? 'titre' : reglages.ambiance && reglages.ambiance !== 'auto' && STYLES[reglages.ambiance] ? reglages.ambiance : AUTO[monde]);
+  const NOEL = (() => { // [pas, demi-ton depuis do, durée en croches]
+    const air = [[4, 2], [4, 2], [4, 4], [4, 2], [4, 2], [4, 4], [4, 2], [7, 2], [0, 3], [2, 1], [4, 8],
+      [5, 2], [5, 2], [5, 3], [5, 1], [5, 2], [4, 2], [4, 2], [4, 1], [4, 1]];
+    const finA = [[4, 2], [2, 2], [2, 2], [4, 2], [2, 4], [7, 4]], finB = [[7, 2], [7, 2], [5, 2], [2, 2], [0, 8]];
+    const out = []; let p = 0;
+    for (const [n, l] of [...air, ...finA, ...air, ...finB]) { out.push([p, n, l]); p += l; }
+    return out;
+  })();
+  const NOEL_ACC = [[0, 4, 7], [0, 4, 7], [0, 4, 7], [0, 4, 7], [5, 9, 12], [0, 4, 7], [2, 6, 9], [7, 11, 14],
+    [0, 4, 7], [0, 4, 7], [0, 4, 7], [0, 4, 7], [5, 9, 12], [0, 4, 7], [7, 11, 14], [0, 4, 7]];
+  const hiver = () => typeof hiverActif !== 'undefined' && hiverActif;
+  const styleActuel = () => apercu || (titre ? (hiver() ? 'noel' : 'titre') : reglages.ambiance && reglages.ambiance !== 'auto' && STYLES[reglages.ambiance] ? reglages.ambiance : AUTO[monde]);
   function planifier() {
     if (!ac || !musOn) return;
     const st = styleActuel();
@@ -801,13 +1114,20 @@ const SON = (() => {
     while (prochain < ac.currentTime + 0.8) {
       const prog = PROGS[monde % PROGS.length], mes = Math.floor(pas / 16) % 4, k = pas % 16, racine = prog[mes];
       const t = prochain + (S.swing && k % 2 ? S.swing : 0);
-      if (!discret) { sortie0 = busMus; try { S.etape(k, racine, t, S.c); } catch (e) { console.error(e); } sortie0 = busSons; }
+      if (!discret) { sortie0 = busMus; try {
+        S.etape(k, racine, t, S.c);
+        if (hiver() && st !== 'noel' && st !== 'nature') { // l'hiver, dans les niveaux : grelots discrets et petites étoiles de célesta
+          if (k === 4 || k === 12) grelots(t, 0.45);
+          if (libre(t) && k === 0 && hasard() < 0.45) I.celesta(hauteur(racine + [7, 9, 11][Math.floor(hasard() * 3)]), t, 0.22);
+        }
+      } catch (e) { console.error(e); } sortie0 = busSons; }
       if (st === 'nature' ? k % 4 === 0 && hasard() < 0.45 : k === 8 && hasard() < 0.5) natureEvenement(prochain);
       prochain += S.c; pas++;
     }
   }
   function natureEvenement(t) {
     const m = monde;
+    if (hiver()) return; // l'hiver : ni oiseaux, ni grillons, ni gouttes ; seulement le vent
     if (m === 0 || m === 2) { // oiseaux
       const n = 2 + Math.floor(hasard() * 4), base = 2600 + hasard() * 1400;
       for (let i = 0; i < n; i++) { const o = osc('sine', base, t + i * 0.11, 0.08, 0.025, busNat, 0.01, 0.3); o.frequency.setValueAtTime(base * (1 + hasard() * 0.3), t + i * 0.11); o.frequency.exponentialRampToValueAtTime(base * 0.8, t + i * 0.11 + 0.08); }
@@ -1101,6 +1421,48 @@ const MONDES = [
   { nom: "L'Étang de Lune", sous: 'Nuit bleue', ciel: ['#1f2f66', '#3c5299', '#7f93d1'], herbe: ['#5a9a88', '#52907f', '#3f7769'], haie: '#2f6358', accent: '#8fe3ff', onde: ['#e6fbff', '#7fe0ff'], texte: '#cfe9ff', nuit: 0.8, soleil: '#f4f7ff' },
   { nom: 'Le Jardin des Étoiles', sous: 'Nuit étoilée', ciel: ['#140f33', '#2e2163', '#5a3f8a'], herbe: ['#4c7d78', '#44726e', '#355d5a'], haie: '#27494a', accent: '#ffd36b', onde: ['#fff8d6', '#ffcf5a'], texte: '#ffe9b0', nuit: 1, soleil: '#fffbe8' },
 ];
+// ----- jardin d'hiver (Noël) : même jeu, mais tout est enneigé -----
+const MONDES_ETE = MONDES.map(M => Object.assign({}, M));
+const HIVER = [
+  { ciel: ['#a9cfee', '#dcebf8', '#f6f1ea'], herbe: ['#f3f7fc', '#e6eef8', '#c8d6e8'], haie: '#2f6a52' },
+  { ciel: ['#9cc8ec', '#d4e8f8', '#f2f7fc'], herbe: ['#eff5fb', '#e2ebf6', '#c3d2e6'], haie: '#2c6650' },
+  { ciel: ['#f2c3a0', '#f6dcc8', '#fbefe6'], herbe: ['#f6f2f0', '#ece5e3', '#d3c8cc'], haie: '#2f634c' },
+  { herbe: ['#e2e2f2', '#d4d5ec', '#b5b7d8'], haie: '#2f5e52' },
+  { herbe: ['#aec2dd', '#a2b6d3', '#8599bd'], haie: '#24504a' },
+  { herbe: ['#9eaad0', '#929ec8', '#7682ad'], haie: '#203f45' },
+];
+let hiverActif = false;
+function appliquerHiver() {
+  const on = typeof neigeOn === 'function' && neigeOn();
+  if (on === hiverActif) return;
+  hiverActif = on;
+  MONDES.forEach((M, i) => Object.assign(M, MONDES_ETE[i], on ? HIVER[i] : {}));
+  try { cacheFonds = {}; cacheTitre = null; icones = {}; if (J.niv) J.plateau = preparerPlateau(); } catch (e) { }
+}
+function capeNeige(g, x, y, rx, ry) { // petite couche de neige posée sur un objet
+  g.fillStyle = '#fbfdff'; g.beginPath(); g.ellipse(x, y, rx, ry, 0, Math.PI, TAU);
+  for (let k = 3; k >= 0; k--) g.arc(x - rx + (k + 0.5) * rx / 2, y, rx / 4.2, 0, Math.PI);
+  g.fill();
+}
+function bonnetNoel(g, s) { // bonnet de père Noël (Mélo)
+  g.save(); g.translate(-s * 0.13, -s * 0.3); g.rotate(-0.15);
+  g.fillStyle = '#e23b3b'; g.beginPath(); g.moveTo(-s * 0.2, 0); g.quadraticCurveTo(-s * 0.12, -s * 0.34, s * 0.08, -s * 0.36); g.quadraticCurveTo(s * 0.26, -s * 0.34, s * 0.3, -s * 0.16); g.quadraticCurveTo(s * 0.14, -s * 0.24, s * 0.2, 0); g.closePath(); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.moveTo(s * 0.04, -s * 0.05); g.quadraticCurveTo(s * 0.12, -s * 0.24, s * 0.3, -s * 0.16); g.quadraticCurveTo(s * 0.14, -s * 0.2, s * 0.2, 0); g.closePath(); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.roundRect(-s * 0.24, -s * 0.06, s * 0.48, s * 0.11, s * 0.055); g.fill();
+  g.beginPath(); g.arc(s * 0.31, -s * 0.15, s * 0.07, 0, TAU); g.fill();
+  g.restore();
+}
+function sapin(g, x, y, s, nuit) { // sapin enneigé (carte, l'hiver)
+  g.fillStyle = 'rgba(40,60,90,.16)'; g.beginPath(); g.ellipse(x, y + s * 0.5, s * 0.45, s * 0.14, 0, 0, TAU); g.fill();
+  g.fillStyle = nuit ? '#5a4a52' : '#7a5236'; g.fillRect(x - s * 0.07, y + s * 0.25, s * 0.14, s * 0.27);
+  const c = nuit ? ['#1f4a44', '#2b5d55'] : ['#2f7a4f', '#3f9460'];
+  for (let k = 0; k < 3; k++) {
+    const by = y + s * (0.32 - k * 0.3), lw = s * (0.5 - k * 0.12), ht = s * 0.42;
+    g.fillStyle = c[k % 2]; g.beginPath(); g.moveTo(x - lw, by); g.quadraticCurveTo(x, by + s * 0.06, x + lw, by); g.lineTo(x, by - ht); g.closePath(); g.fill();
+    g.fillStyle = '#fbfdff'; g.beginPath(); g.moveTo(x - lw * 0.45, by - ht * 0.55); g.lineTo(x, by - ht); g.lineTo(x + lw * 0.45, by - ht * 0.55); g.quadraticCurveTo(x + lw * 0.2, by - ht * 0.45, x, by - ht * 0.58); g.quadraticCurveTo(x - lw * 0.2, by - ht * 0.45, x - lw * 0.45, by - ht * 0.55); g.fill();
+  }
+}
+
 // espèces de fleurs (une par niveau, en boucle) : pétales, forme, couleurs
 const ESPECES = [
   { n: 6, f: 'rond', c: ['#ff9cc2', '#ff6fa3'], coeur: '#ffd95e' },
@@ -1338,6 +1700,7 @@ function dessinerRoc(g, x, y, s, seed, m) {
     [[-0.12, 0.0, 0.13], [0.06, -0.15, 0.13]].forEach(([a, b, c]) => { g.fillStyle = cols[1]; g.beginPath(); g.arc(a * s, b * s, c * s, 0, TAU); g.fill(); });
     for (let k = 0; k < 5; k++) { g.fillStyle = k % 2 ? '#ff5f87' : '#ffd25a'; g.beginPath(); g.arc((r() - 0.5) * s * 0.5, (r() - 0.5) * s * 0.35, s * 0.035, 0, TAU); g.fill(); }
   }
+  if (hiverActif) { if (kind === 0) capeNeige(g, -s * 0.02, -s * 0.2, s * 0.3, s * 0.12); else if (kind === 1) { g.fillStyle = '#fbfdff'; g.beginPath(); g.ellipse(0, -s * 0.13, s * 0.3, s * 0.12, 0, 0, TAU); g.fill(); } else capeNeige(g, 0, -s * 0.22, s * 0.26, s * 0.13); }
   g.restore();
 }
 
@@ -1392,6 +1755,7 @@ function dessinerMelo(g, x, y, s, t, humeur, dir) {
   g.beginPath(); g.moveTo(-s * 0.22, -s * 0.28); g.quadraticCurveTo(-s * 0.28, -s * 0.48, -s * 0.18, -s * 0.52); g.stroke();
   g.beginPath(); g.moveTo(-s * 0.08, -s * 0.33); g.quadraticCurveTo(-s * 0.06, -s * 0.52, s * 0.04, -s * 0.54); g.stroke();
   g.fillStyle = '#ff8fb1'; g.beginPath(); g.arc(-s * 0.18, -s * 0.52, s * 0.04, 0, TAU); g.arc(s * 0.04, -s * 0.54, s * 0.04, 0, TAU); g.fill();
+  if (hiverActif) bonnetNoel(g, s);
   // visage
   const ey = -s * 0.04;
   if (humeur === 'joie') {
@@ -1473,7 +1837,7 @@ function dessinerCiel(g, W, H, m, seed) {
   // fleurettes éparses
   for (let i = 0; i < 40; i++) {
     const fx = r() * W, fy = H * (0.66 + r() * 0.34);
-    g.fillStyle = ['#fff', '#ffe27a', '#ffb3cf', '#c9b8ff'][i % 4]; g.globalAlpha = 0.7;
+    g.fillStyle = hiverActif ? '#ffffff' : ['#fff', '#ffe27a', '#ffb3cf', '#c9b8ff'][i % 4]; g.globalAlpha = 0.7;
     g.beginPath(); g.arc(fx, fy, 1.5 + r() * 2, 0, TAU); g.fill();
   }
   g.globalAlpha = 1;
@@ -1631,7 +1995,7 @@ const TEXTES = {
       ['La dernière note ! Elle brillait plus fort que toutes les étoiles.', 'Les six notes sont enfin réunies. Écoute bien…', 'La Grande Mélodie est revenue. Tout le jardin va fleurir !'],
     ],
     suivant: 'Suivant', reecouter: 'Réécouter', carte: 'Carte', fermer: 'Fermer',
-    reglages: 'Réglages', rMusique: 'Musique et nature', rSons: 'Notes et effets', rVib: 'Vibrations', rLangue: 'Langue', langueNom: 'Français',
+    reglages: 'Réglages', rMusique: 'Musique et nature', rSons: 'Notes et effets', rVib: 'Vibrations', rNeige: 'Jardin d’hiver (Noël) ❄', rLangue: 'Langue', langueNom: 'Français',
     rAvis: 'Ton avis', bAvis: 'Écrire', avisSujet: 'Jardin Sonore : mon avis',
     rCredits: 'Crédits', bVoir: 'Voir', retourReglages: 'Retour',
     creditsJeu: '<b>Jardin Sonore</b><br>Un jeu de Loucoume Interactive<br>Toute la musique est générée en direct',
@@ -1728,7 +2092,7 @@ const TEXTES = {
       ['The last note! It was shining brighter than all the stars.', 'All six notes are together at last. Listen closely…', 'The Great Melody is back. The whole garden is going to bloom!'],
     ],
     suivant: 'Next', reecouter: 'Replay', carte: 'Map', fermer: 'Close',
-    reglages: 'Settings', rMusique: 'Music and nature', rSons: 'Notes and effects', rVib: 'Vibration', rLangue: 'Language', langueNom: 'English',
+    reglages: 'Settings', rMusique: 'Music and nature', rSons: 'Notes and effects', rVib: 'Vibration', rNeige: 'Winter garden (Christmas) ❄', rLangue: 'Language', langueNom: 'English',
     rAvis: 'Your feedback', bAvis: 'Write', avisSujet: 'Jardin Sonore: my feedback',
     rCredits: 'Credits', bVoir: 'View', retourReglages: 'Back',
     creditsJeu: '<b>Jardin Sonore</b><br>A game by Loucoume Interactive<br>All the music is generated live',
@@ -1881,15 +2245,18 @@ const J = {
 };
 let particules = [];
 // effets réduits : activés tout seuls si le téléphone n'arrive pas à suivre (moins de pixels, de particules et de rayons)
-let effetsReduits = SAUVE.lire('effetsReduits', false);
-const mesureFps = { n: 0, total: 0 };
+// La mesure se refait à chaque lancement (rien n'est gardé), et seulement après 3 s passées dans un niveau,
+// une fois décors et sons préparés, pour ne pas pénaliser un téléphone qui charge.
+let effetsReduits = false; SAUVE.ecrire('effetsReduits', false);
+const mesureFps = { n: 0, total: 0, attente: 0 };
 function mesurerFluidite(dtReel) {
   if (effetsReduits || mesureFps.n < 0) return;
-  if (ecranActuel !== 'jeu' && ecranActuel !== 'carte') return;
+  if (ecranActuel !== 'jeu' || popOuverte) return;
+  if (mesureFps.attente < 3) { mesureFps.attente += dtReel; return; }
   mesureFps.n++; mesureFps.total += dtReel;
   if (mesureFps.n === 150) {
     const moyenne = mesureFps.total / 150;
-    if (moyenne > 1 / 40) { effetsReduits = true; SAUVE.ecrire('effetsReduits', true); ambiance.length = 10; redimensionner(); }
+    if (moyenne > 1 / 40) { effetsReduits = true; ambiance.length = 10; redimensionner(); }
     mesureFps.n = -1; // une seule mesure par lancement
   }
 }
@@ -1904,7 +2271,7 @@ function chargerNiveau(n) {
   J.concert = null; J.fete = null; J.fini = false; J.indices = []; J.drag = null; J.appui = null; J.decoFleurs = []; J.eclosion = 0;
   J.dejaSonne = new Set(); J.tEntree = tJeu; J.histo = []; J.astucePissenlit = false;
   J.doree = J.niv.o ? J.niv.o[1] * J.L.w + J.niv.o[0] : -1; J.doreePrise = false; J.doreeNouvelle = false; J.vol = null;
-  J.ecoute = null; J.devoile = 1; J.nouvelles = [];
+  J.ecoute = null; J.devoile = 1; J.nouvelles = []; J.jourRes = null;
   J.meilleur = 0; J.tProgres = tJeu; J.aides = 0; J.recommence = 0; J.lucioleUtilisee = false; J.etoilesAvant = n < NB_NIVEAUX ? etoiles[n] | 0 : 0; arreterAppelAide();
   particules = [];
   SON.attenuer(false); SON.musique(reglages.musique, monde());
@@ -1949,7 +2316,22 @@ function preparerPlateau() {
     const bx = x * s + (x <= 0 ? -s * 0.12 : x >= w ? s * 0.12 : 0), by = y * s + (y <= 0 ? -s * 0.12 : y >= h ? s * 0.12 : 0);
     g.fillStyle = k % 3 ? M.haie : shade(M.haie, 18);
     g.beginPath(); g.arc(bx, by, s * (0.16 + r() * 0.08), 0, TAU); g.fill();
-    if (r() < 0.12) { g.fillStyle = ['#ffd25a', '#ff8fb1', '#fff'][k % 3]; g.beginPath(); g.arc(bx + (r() - 0.5) * s * 0.2, by + (r() - 0.5) * s * 0.2, s * 0.04, 0, TAU); g.fill(); }
+    if (!hiverActif && r() < 0.12) { g.fillStyle = ['#ffd25a', '#ff8fb1', '#fff'][k % 3]; g.beginPath(); g.arc(bx + (r() - 0.5) * s * 0.2, by + (r() - 0.5) * s * 0.2, s * 0.04, 0, TAU); g.fill(); }
+  }
+  if (hiverActif) { // neige sur le dessus de la haie, puis une guirlande lumineuse tout autour
+    for (let k = 0; k <= w * 3; k++) { g.fillStyle = '#fbfdff'; g.beginPath(); g.ellipse(k * s / 3, -s * 0.27, s * 0.2, s * 0.08, 0, 0, TAU); g.fill(); }
+    for (const [x, y0] of [[-s * 0.25, 0], [w * s + s * 0.25, 0]]) for (let k = 0; k < h; k++) { g.beginPath(); g.ellipse(x, y0 + k * s + s * 0.3, s * 0.06, s * 0.14, 0, 0, TAU); g.fill(); }
+    const lum = ['#ff4d4d', '#ffd23f', '#5fd0ff', '#7dea6a', '#ff8fd0'], P = 2 * (w + h), n = P * 2;
+    g.strokeStyle = 'rgba(40,40,40,.35)'; g.lineWidth = Math.max(1, s * 0.015);
+    for (let k = 0; k < n; k++) {
+      const d = k / n * P; let x, y;
+      if (d < w) { x = d; y = 0; } else if (d < w + h) { x = w; y = d - w; } else if (d < 2 * w + h) { x = w - (d - w - h); y = h; } else { x = 0; y = h - (d - 2 * w - h); }
+      const px = x * s + (x <= 0 ? -s * 0.17 : x >= w ? s * 0.17 : 0), py = y * s + (y <= 0 ? -s * 0.17 : y >= h ? s * 0.17 : 0) + (k % 2 ? s * 0.04 : 0);
+      const hl = g.createRadialGradient(px, py, 0, px, py, s * 0.13); hl.addColorStop(0, lum[k % 5] + 'aa'); hl.addColorStop(1, lum[k % 5] + '00');
+      g.fillStyle = hl; g.beginPath(); g.arc(px, py, s * 0.13, 0, TAU); g.fill();
+      g.fillStyle = lum[k % 5]; g.beginPath(); g.ellipse(px, py, s * 0.035, s * 0.05, 0, 0, TAU); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.arc(px - s * 0.01, py - s * 0.015, s * 0.012, 0, TAU); g.fill();
+    }
   }
   // terre
   g.fillStyle = M.nuit > 0.5 ? '#3b3a4a' : '#9b7656'; g.beginPath(); g.roundRect(-s * 0.06, -s * 0.06, w * s + s * 0.12, h * s + s * 0.12, s * 0.22); g.fill();
@@ -1972,7 +2354,7 @@ function preparerPlateau() {
     // brins d'herbe et fleurettes
     g.strokeStyle = shade(M.herbe[2], -8); g.lineWidth = Math.max(1, s * 0.025); g.lineCap = 'round';
     for (let b = 0; b < 4; b++) { const gx = px + s * (0.15 + r() * 0.7), gy = py + s * (0.3 + r() * 0.6); g.beginPath(); g.moveTo(gx, gy); g.lineTo(gx + (r() - 0.5) * s * 0.06, gy - s * 0.1); g.stroke(); }
-    if (r() < 0.3 && cc === '.') decorCase(g, m, px, py, s, r);
+    if (r() < 0.3 && cc === '.') { if (hiverActif) { g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(px + s * (0.2 + r() * 0.6), py + s * (0.25 + r() * 0.6), s * 0.025, 0, TAU); g.fill(); } else decorCase(g, m, px, py, s, r); }
     if (cc === '#') dessinerRoc(g, px + s / 2, py + s / 2, s, J.n * 31 + i * 7, m);
   }
   return { c, marge };
@@ -2062,6 +2444,7 @@ function lancerConcert(rejouer) {
   let mesures = 0;
   try { mesures = SON.concert(J.evtsConcert || J.sim.evts, base, TEMPO, e => (h - 1 - ((e.i / J.L.w) | 0)) + (e.k ? 2 : 0)) || 0; } catch (err) { }
   J.concert.fin8 = mesures; // la fête finale arrive avec la cadence
+  if (!rejouer && estJour(J.n)) J.jourRes = marquerJour(); // compté dès le début du concert, comme les niveaux
   if (!rejouer && !estJour(J.n)) {
     // première victoire sans toucher à la plante bonus (ni à la note dorée) : la plante part dans la réserve
     const ib = J.niv.ib, inv = inventaire();
@@ -2300,6 +2683,7 @@ function lueur(g, x, y, r, col, a) {
 }
 function dessinerAmbiance(g, nuit) {
   for (const a of ambiance) {
+    if (hiverActif && (a.t === 'papillon' || a.t === 'feuilleM' || a.t === 'libellule')) continue; // l'hiver : ni papillons, ni feuilles mortes, ni libellules
     switch (a.t) {
       case 'papillon': {
         if (nuit >= 0.5) break;
@@ -2638,6 +3022,7 @@ cv.addEventListener('pointerup', ev => {
   const d = J.drag;
   if (d && ev.pointerId === d.id) {
     J.drag = null;
+    if (!d.bouge && (J.concert || J.fini)) return; // doigt relâché après le début du concert : on ne touche plus aux plantes
     if (!d.bouge) { // simple toucher
       if (d.t === 3) { // le pissenlit ne tourne pas : il frémit, et on explique comment le reprendre
         J.appui = { i: d.de, t: tJeu }; son('tourne', J.L.h - 1 - ((d.de / J.L.w) | 0)); vibrer();
@@ -3365,12 +3750,14 @@ function fondTitre() {
   g.fillStyle = hs; g.fillRect(0, 0, W, H);
   // collines : plus elles sont loin, plus elles se fondent dans le ciel
   const r = rnd(21);
-  const plans = [[0.43, '#b7dcb8', '#a4d0a6', 0.022], [0.5, '#9bd38d', '#86c47a', 0.03], [0.57, '#7cc566', '#69b555', 0.026]];
+  const plans = hiverActif ? [[0.43, '#e4ecf6', '#cfdcec', 0.022], [0.5, '#edf3f9', '#d6e2ef', 0.03], [0.57, '#f4f8fc', '#dde7f2', 0.026]]
+    : [[0.43, '#b7dcb8', '#a4d0a6', 0.022], [0.5, '#9bd38d', '#86c47a', 0.03], [0.57, '#7cc566', '#69b555', 0.026]];
   plans.forEach(([b, coul, ombre, amp], p) => {
     const crete = x => H * b + Math.sin(x / W * 4.2 + p * 1.7) * H * amp + Math.sin(x / W * 11 + p) * H * amp * 0.3;
     // bosquets ronds posés sur la crête
     for (let i = 0; i < 5 + p * 2; i++) {
       const x = r() * W, y = crete(x), rr = H * (0.016 + p * 0.007) * (0.8 + r() * 0.6);
+      if (hiverActif) { sapin(g, x, y - rr * 1.2, rr * 2.2, false); continue; }
       g.fillStyle = ombre; g.beginPath(); g.arc(x - rr * 0.6, y - rr * 0.35, rr * 0.8, 0, TAU); g.arc(x + rr * 0.5, y - rr * 0.3, rr * 0.75, 0, TAU); g.arc(x, y - rr * 0.8, rr, 0, TAU); g.fill();
     }
     const gc = g.createLinearGradient(0, H * b - H * amp, 0, H);
@@ -3385,22 +3772,22 @@ function fondTitre() {
   });
   // prairie du premier plan
   const pr = g.createLinearGradient(0, H * 0.64, 0, H);
-  pr.addColorStop(0, '#8ed877'); pr.addColorStop(1, '#5aae4f');
+  if (hiverActif) { pr.addColorStop(0, '#f6f9fd'); pr.addColorStop(1, '#d2deec'); } else { pr.addColorStop(0, '#8ed877'); pr.addColorStop(1, '#5aae4f'); }
   g.fillStyle = pr; g.beginPath(); g.moveTo(0, H);
   for (let q = 0; q <= 30; q++) { const x = q / 30 * W; g.lineTo(x, H * 0.645 + Math.sin(x / W * 3 + 1) * H * 0.012); }
   g.lineTo(W, H); g.fill();
   // chemin de pierres qui monte vers la cloche, en perspective
   for (let i = 0; i < 9; i++) {
     const u = i / 8, x = W * 0.5 + Math.sin(u * 3.2 + 0.4) * W * 0.12 * (1 - u * 0.7), y = lerp(H * 1.02, H * 0.665, Math.pow(u, 0.8)), e = lerp(1, 0.35, u);
-    g.fillStyle = 'rgba(40,90,40,.18)'; g.beginPath(); g.ellipse(x, y + 4 * e, 26 * e, 9 * e, 0, 0, TAU); g.fill();
-    g.fillStyle = '#fff6e2'; g.beginPath(); g.ellipse(x, y, 25 * e, 9 * e, (i % 2 ? 0.12 : -0.1), 0, TAU); g.fill();
+    g.fillStyle = hiverActif ? 'rgba(60,80,120,.18)' : 'rgba(40,90,40,.18)'; g.beginPath(); g.ellipse(x, y + 4 * e, 26 * e, 9 * e, 0, 0, TAU); g.fill();
+    g.fillStyle = hiverActif ? '#c9a786' : '#fff6e2'; g.beginPath(); g.ellipse(x, y, 25 * e, 9 * e, (i % 2 ? 0.12 : -0.1), 0, TAU); g.fill();
     g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(x - 5 * e, y - 2.5 * e, 11 * e, 3 * e, -0.1, 0, TAU); g.fill();
   }
   // fleurettes et touffes d'herbe
   for (let i = 0; i < 70; i++) {
     const y = H * (0.66 + r() * 0.34), x = r() * W, e = 0.5 + (y / H - 0.66) * 2.5;
     if (r() < 0.5) {
-      g.strokeStyle = 'rgba(60,130,55,.5)'; g.lineWidth = 1.6; g.lineCap = 'round'; g.beginPath();
+      g.strokeStyle = hiverActif ? 'rgba(120,145,180,.45)' : 'rgba(60,130,55,.5)'; g.lineWidth = 1.6; g.lineCap = 'round'; g.beginPath();
       for (let b = -1; b <= 1; b++) { g.moveTo(x + b * 3 * e, y); g.quadraticCurveTo(x + b * 4 * e, y - 6 * e, x + b * 6 * e, y - 10 * e); }
       g.stroke();
     } else {
@@ -3428,6 +3815,7 @@ function dessinerBuisson(g, x, y, s, dir) { // massif feuillu ancré dans un coi
     g.fillStyle = '#5cb956';
     for (let k = 0; k < 3; k++) { const a = -Math.PI * (0.25 + k * 0.25), lx = cx + Math.cos(a) * r * 0.92, ly = cy + Math.sin(a) * r * 0.92; g.beginPath(); g.ellipse(lx, ly, r * 0.16, r * 0.07, a + Math.PI / 2, 0, TAU); g.fill(); }
   }
+  if (hiverActif) for (const [bx, by, br] of boules) capeNeige(g, x + bx * s * dir, y + by * s - br * s * 0.6, br * s * 0.72, br * s * 0.32);
 }
 // t0 : la scène commence quand le logo du studio a fini ; avant, elle reste muette (pas de notes par-dessus le carillon)
 const SCENE = { duree: 7, cycle: -1, joues: 0, t0: 0, studio: !!window.LoucoumeIntro };
@@ -3650,7 +4038,7 @@ function dessinerCarte(dt) {
     if (Math.max(y1, y2) + oy < -40 || Math.min(y1, y2) + oy > H + 40) continue;
     for (let k = 1; k < 4; k++) {
       const u = k / 4, x = lerp(x1, x2, u) + Math.sin(u * Math.PI) * 10, y = lerp(y1, y2, u) + oy;
-      g.fillStyle = i < deb ? 'rgba(255,248,225,.95)' : 'rgba(255,255,255,.4)';
+      g.fillStyle = hiverActif ? (i < deb ? 'rgba(176,140,108,.95)' : 'rgba(150,140,150,.35)') : i < deb ? 'rgba(255,248,225,.95)' : 'rgba(255,255,255,.4)';
       g.beginPath(); g.ellipse(x, y, 8, 5.5, 0.3, 0, TAU); g.fill();
       g.fillStyle = 'rgba(0,0,0,.08)'; g.beginPath(); g.ellipse(x, y + 2, 8, 4, 0.3, 0, TAU); g.fill();
     }
@@ -3703,7 +4091,8 @@ function dessinerDecorCarte(g, x, y, d) {
   if (d.t === 'touffe') { g.strokeStyle = shade(M.herbe[2], -10); g.lineWidth = 2; g.lineCap = 'round'; g.beginPath(); for (let k = -1; k <= 1; k++) { g.moveTo(x + k * 4, y); g.quadraticCurveTo(x + k * 5, y - 6 * d.s, x + k * 7 + Math.sin(tJeu * 1.5 + x) * 1.5, y - 10 * d.s); } g.stroke(); return; }
   if (d.t === 'fleurette') { g.fillStyle = ['#fff', '#ffe27a', '#ffc0d8', '#c9b8ff'][d.k % 4]; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(x + Math.cos(k * 1.26) * 3 * d.s, y + Math.sin(k * 1.26) * 3 * d.s, 2.2 * d.s, 0, TAU); g.fill(); } g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(x, y, 1.6 * d.s, 0, TAU); g.fill(); return; }
   if (d.t === 'nom' || d.t === 'merci') { dessinerSurprise(g, x, y, d); return; }
-  if (d.t === 'arbre') {
+  if (d.t === 'arbre' && hiverActif) sapin(g, x, y - s * 0.1, s * 1.1, nuit);
+  else if (d.t === 'arbre') {
     ombre(s * 0.5, s * 0.5);
     g.fillStyle = nuit ? '#5a4a52' : '#8a6040'; g.beginPath(); g.moveTo(x - s * 0.1, y + s * 0.52); g.lineTo(x - s * 0.06, y); g.lineTo(x + s * 0.06, y); g.lineTo(x + s * 0.1, y + s * 0.52); g.fill();
     const c = nuit ? ['#2c5a52', '#3a7066'] : d.m === 2 ? ['#d99a4a', '#efbf63'] : d.m === 3 ? ['#9a6fb0', '#c08fd0'] : ['#4f9f45', '#6cc05a'];
@@ -3905,6 +4294,7 @@ function ouvrirReglages() {
     ${interrupteur(['sons', T('rSons')], reglages.sons)}
     ${interrupteur(['vibrations', T('rVib')], reglages.vibrations)}
     ${interrupteur(['defi', T('rDefi')], reglages.defi)}
+    ${interrupteur(['neige', T('rNeige')], neigeOn())}
     <div class="reglage">${T('rAmbiance')}<button class="btn petit lav" id="r-ambiance">${T('ambiances')[reglages.ambiance][0]}</button></div>
     <div class="reglage">${T('rIntro')}<button class="btn petit lav" id="r-intro">▶</button></div>
     ${chapitresAtteints().length ? `<div class="reglage">${T('rHistoire')}<button class="btn petit lav" id="r-histoire">▶</button></div>` : ''}
@@ -3918,6 +4308,7 @@ function ouvrirReglages() {
     if (k === 'musique' && ecranActuel !== 'jardin') SON.musique(reglages.musique, ecranActuel === 'jeu' ? monde() : null);
     son('clic'); if (k === 'vibrations') vibrer('fort');
   };
+  $('r-neige').onclick = e => { reglages.neige = !neigeOn(); e.currentTarget.classList.toggle('on', reglages.neige); sauverReglages(); appliquerHiver(); if (ecranActuel === 'carte' || ecranActuel === 'jardin') { carte.decor = []; preparerDecorCarte(); } son('clic'); };
   $('r-langue').onclick = () => {
     langue = langue === 'fr' ? 'en' : 'fr'; SAUVE.ecrire('langue', langue); appliquerLangue(); son('clic');
     preparerTitre(); if (ecranActuel === 'jeu') majHud(); if (ecranActuel === 'carte') ouvrirCarte(); if (ecranActuel === 'jardin') { majTexteJardin(); majPlateauJardin(); if (JARDIN.onglet === 'herbier') remplirHerbier(); }
@@ -3973,7 +4364,8 @@ function retour() {
   if (POPS_LIBRES.includes(popOuverte)) { fermerPop(); return true; }
   if (ecranActuel === 'jardin') { fermerJardin(); return true; }
   if (ecranActuel === 'intro') { finirIntro(); return true; }
-  if (popOuverte === 'victoire') { $('p-carte').click(); return true; }
+  if (popOuverte === 'histoire') { const b = $('h-suite'); if (b) b.click(); return true; } // retour = page suivante, l'histoire se termine proprement
+  if (popOuverte === 'victoire') { const b = $('p-carte') || $('p-jardin') || $('p-suivant'); if (b) b.click(); return true; }
   if (ecranActuel === 'jeu') { if (!(J.concert && !J.fini)) fondu(() => ouvrirCarte(J.n)); return true; }
   if (ecranActuel === 'carte') { fondu(() => { preparerTitre(); montrer('titre'); }); return true; }
   return false;
@@ -3983,16 +4375,42 @@ if (AppNative) AppNative.addListener('backButton', () => { if (!retour()) AppNat
 document.addEventListener('visibilitychange', () => { SON.pause(document.hidden); });
 
 // ----- boucle principale -----
-let tPrec = performance.now();
+let tPrec = performance.now(), dernierToucher = performance.now();
+['pointerdown', 'pointermove', 'keydown'].forEach(t => window.addEventListener(t, () => { dernierToucher = performance.now(); }, true));
+// ----- neige de Noël : automatique du 1er décembre au 6 janvier, réglable toute l'année -----
+function saisonNeige() { const d = new Date(), m = d.getMonth(), j = d.getDate(); return m === 11 || (m === 0 && j <= 6); }
+function neigeOn() { return reglages.neige == null ? saisonNeige() : !!reglages.neige; }
+const FLOCONS = [];
+function dessinerNeige(dt) {
+  if (!neigeOn() || ecranActuel === 'intro') return;
+  const n = Math.round(Math.min(90, W * H / 9000) * (effetsReduits ? 0.5 : 1));
+  while (FLOCONS.length < n) FLOCONS.push({ x: Math.random() * W, y: Math.random() * H, r: 1.4 + Math.random() * 2.4, v: 0, p: Math.random() * TAU });
+  FLOCONS.length = n;
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const f of FLOCONS) {
+    f.v = 14 + f.r * 9; f.y += f.v * dt; f.p += dt * (0.6 + f.r * 0.2); f.x += Math.sin(f.p) * 10 * dt;
+    if (f.y > H + 4) { f.y = -4; f.x = Math.random() * W; }
+    if (f.x < -4) f.x = W + 4; else if (f.x > W + 4) f.x = -4;
+    // léger contour bleuté pour que le flocon se voie aussi sur l'herbe claire
+    ctx.globalAlpha = 0.6 + f.r * 0.1; ctx.fillStyle = 'rgba(90,110,150,.35)'; ctx.beginPath(); ctx.arc(f.x, f.y, f.r + 0.9, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill();
+  }
+  ctx.restore();
+}
 function boucle(now) {
+  appliquerHiver();
+  // économie de batterie : sans toucher depuis 3 s (et hors concert), on redessine 30 fois par seconde au lieu de 60
+  const calme = now - dernierToucher > 3000 && !J.drag && !(ecranActuel === 'jeu' && J.concert) && ecranActuel !== 'intro';
+  if (calme && now - tPrec < 31) { requestAnimationFrame(boucle); return; }
   const dtReel = (now - tPrec) / 1000, dt = Math.min(0.05, dtReel); tPrec = now; tJeu += dt;
-  if (!document.hidden && dtReel < 0.5) mesurerFluidite(dtReel);
+  if (!calme && !document.hidden && dtReel < 0.5) mesurerFluidite(dtReel);
   try {
     if (ecranActuel === 'jeu' && J.L) { majParticules(dt); dessinerJeu(dt); }
     else if (ecranActuel === 'carte') dessinerCarte(dt);
     else if (ecranActuel === 'jardin') dessinerJardin(dt);
     else if (ecranActuel === 'intro') dessinerIntro(dt);
     else dessinerTitre(dt);
+    dessinerNeige(dt);
   } catch (e) { console.error(e); }
   requestAnimationFrame(boucle);
 }
@@ -4263,11 +4681,11 @@ const nbJours = () => etatJour().n;
 const jourOuvert = () => !!faits[JOUR_SEUIL - 1];
 const jourFait = () => etatJour().d === numeroJour();
 function enigmeDuJour() {
-  const j = numeroJour(), parBloc = MONDES.length, nb = JOURS.length / parBloc;
-  const bloc = ((Math.floor(j / parBloc) % nb) + nb) % nb, mAtteint = Math.min(MONDES.length - 1, (debloque() / PAR_MONDE) | 0);
-  let m = ((j % parBloc) + parBloc) % parBloc;
-  if (m > mAtteint) m = ((j % (mAtteint + 1)) + mAtteint + 1) % (mAtteint + 1);
-  return JOURS[bloc * parBloc + m];
+  const j = numeroJour();
+  const mAtteint = Math.min(MONDES.length - 1, (debloque() / PAR_MONDE) | 0);
+  // une énigme différente chaque jour parmi les mondes déjà atteints (pour un joueur arrivé au bout, l'ordre reste celui d'avant)
+  const choix = JOURS.filter(e => e.m <= mAtteint);
+  return choix[((j % choix.length) + choix.length) % choix.length];
 }
 function jouerJour() {
   NIVEAUX[N_JOUR] = enigmeDuJour();
@@ -4279,9 +4697,13 @@ function majBoutonJour() {
   b.classList.toggle('nouveau', !jourFait());
   $('lab-jour').textContent = T('jour');
 }
-function victoireJour() {
+function marquerJour() {
   const e = etatJour(), j = numeroJour(), neuf = e.d !== j;
   if (neuf) { e.serie = e.d === j - 1 ? e.serie + 1 : 1; e.n++; e.d = j; SAUVE.ecrire('jour', e); }
+  return { e, j, neuf };
+}
+function victoireJour() {
+  const { e, j, neuf } = J.jourRes || marquerJour(); J.jourRes = null;
   const rosier = neuf && e.n === ROSIER, esp = (j * 7 + 2) % ESPECES.length;
   ouvrirPop(`
     <div class="ruban jour">${T('jourReussi')}</div>
